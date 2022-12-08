@@ -1,0 +1,21 @@
+/opt/clion/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/opt/clion/bin/ninja/linux/ninja -G Ninja -S "/home/pedrov/Área de trabalho/Engenharia-Eletrica-UFF/2022.2/Programação para Engenharia Elétrica/P2 /Questão 4" -B "/home/pedrov/Área de trabalho/Engenharia-Eletrica-UFF/2022.2/Programação para Engenharia Elétrica/P2 /Questão 4/cmake-build-debug"
+-- The C compiler identification is GNU 12.2.0
+-- The CXX compiler identification is GNU 12.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+CMake Error at CMakeLists.txt:6 (add_executable):
+  The target name "Questão_4" is reserved or not valid for certain CMake
+  features, such as generator expressions, and may result in undefined
+  behavior.
+
+
+-- Configuring incomplete, errors occurred!
+See also "/home/pedrov/Área de trabalho/Engenharia-Eletrica-UFF/2022.2/Programação para Engenharia Elétrica/P2 /Questão 4/cmake-build-debug/CMakeFiles/CMakeOutput.log".
