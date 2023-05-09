@@ -6,16 +6,16 @@
 
 - Analise assintotica é aplicavel...
 
+## Complexidade de tempo T(n): 
+Número de passos (q) o algoritimo realiza para realizar uma tarefa
+
+- Pior Caso -> Pior Entrada
+- Melhor caso -> Melhor Entrada
+- Caso medio
+
 ## Notação Theta
 
 ## Notação O
 
 ## Notação Omega
 
-## Dividir para conquistar(...)
-
-- Dividir o problema em um numero de subproblemas que sao instancias menores do mesmo problema
-
-- Conquistar os subproblemas resolvendo os rercusivamente
-
-- Combinar as soluções dos subproblemas
