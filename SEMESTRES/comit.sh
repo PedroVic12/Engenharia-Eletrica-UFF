@@ -7,4 +7,5 @@ git commit -m "."
 # Faça push das alterações para o repositório remoto origin
 git push origin main
 
+echo " "
 echo " Arquivo alterado no github com sucesso!"
