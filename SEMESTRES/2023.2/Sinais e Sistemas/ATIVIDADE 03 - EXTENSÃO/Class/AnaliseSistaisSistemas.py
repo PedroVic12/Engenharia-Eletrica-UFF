@@ -72,7 +72,7 @@ class AnaliseSinaisESistemas:
     def espectro_frequencia(self, signal_waveform):
 
         # Calcular a transformada de Fourier
-        signal_spectrum = scipy.signal.fft(signal_waveform)
+        signal_spectrum = scipy.signal.fftconvolve(signal_waveform)
 
         # Plotar o espectro de frequência
         plt.plot(np.abs(signal_spectrum))
