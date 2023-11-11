@@ -2,6 +2,8 @@ import heartpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal
+import os
+import mne
 
 
 class AnaliseSinaisESistemas:
@@ -150,3 +152,22 @@ class AnaliseSinaisESistemas:
         plt.xlabel('Frequencia [Hz]')
         plt.ylabel('PSD')
         plt.show()
+
+    #!Funções de manipulações de arquivos
+    def localizar_arquivos_txt(self, diretorio):
+        """Retorna uma lista de arquivos .txt no diretório especificado."""
+        return [f for f in os.listdir(diretorio) if os.path.isfile(os.path.join(diretorio, f)) and f.endswith('.txt')]
+
+    def localizar_arquivos_edf(self, diretorio):
+        """Retorna uma lista de arquivos .edf no diretório especificado."""
+        return [f for f in os.listdir(diretorio) if os.path.isfile(os.path.join(diretorio, f)) and f.endswith('.edf')]
+
+    #! Processamento de Sinais
+    def carregarSinalEDF(self, files):
+        raw = mne.io.read_raw_edf(files, preload=True)
+        print('\nArquivo: ', raw.info)
+        print('\nInfo:', files)
+        print('\nCanais presentes no sinal: ', raw.info.ch_names)
+        raw.plot()
+
+    #! Analise Exploratória
