@@ -68,6 +68,24 @@ class Machamp:
                 img, "Face", (x, y), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2
             )
 
+    def save_video(self, cap, img):
+
+        # Definir as propriedades do vídeo de saída
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        frame_size = (
+            int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) * 4),
+            int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) * 2),
+        )  # Ajustar conforme o redimensionamento
+        out = cv2.VideoWriter("./saida_video.mp4", fourcc, fps, frame_size)
+
+        # Redimensionar para o tamanho de saída antes de escrever
+        img_resized = cv2.resize(img, frame_size)
+        out.write(img_resized)
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
     def exibir_imagem(self, img):
         cv2.imshow("Image", img)
         if cv2.waitKey(1) & 0xFF == ord("q"):

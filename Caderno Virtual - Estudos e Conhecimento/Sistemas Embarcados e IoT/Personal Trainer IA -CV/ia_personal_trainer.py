@@ -7,7 +7,6 @@ from src.utils import utils_functions
 import pandas as pd
 from src.pokemon.Machamp import Machamp
 
-#!TODO 28:18
 
 # todo processar o minimo e maximo do movimento
 # todo contador de movimentos
@@ -29,15 +28,6 @@ def loop_trainer_video():
         if not success:
             break
 
-        # Definir as propriedades do vídeo de saída
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        frame_size = (
-            int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) * 4),
-            int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) * 2),
-        )  # Ajustar conforme o redimensionamento
-        out = cv2.VideoWriter("./saida_video.mp4", fourcc, fps, frame_size)
-
         # Processar a imagem
         img = detector.findPose(img, draw=True)
         lmList = detector.findPosition(img, draw=False)
@@ -47,13 +37,8 @@ def loop_trainer_video():
         if len(lmList) != 0:
             pokemon.processVideo(img, detector)
 
-        # Redimensionar para o tamanho de saída antes de escrever
-        img_resized = cv2.resize(img, frame_size)
-        out.write(img_resized)
         # pokemon.exibir_imagem(img)
 
-    cap.release()
-    out.release()
     cv2.destroyAllWindows()
 
 
