@@ -46,9 +46,9 @@ class Machamp:
         self.contador = 0
         self.dir = None  # None significa que ainda não começou a se mover
         self.limite_superior = (
-            50  # Definir conforme observado para o movimento completo
+            30  #! Definir conforme observado para o movimento completo
         )
-        self.limite_inferior = 0  # Definir conforme observado para o movimento completo
+        self.limite_inferior = 0  #! Definir conforme observado para o movimento completo
 
     def __str__(self):
         return self.name
@@ -87,9 +87,11 @@ class Machamp:
         cv2.destroyAllWindows()
 
     def exibir_imagem(self, img):
-        cv2.imshow("Image", img)
+        cv2.imshow("Webcam", img)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyAllWindows()
+
+        return img
 
     def abrir_imagem(self, path):
         imagem = Image.open(path)
@@ -102,6 +104,7 @@ class Machamp:
         return img if success else None
 
     def processVideo(self, img, detector):
+
         # right arm
         right_arm_angle = round(detector.findAngle(img, 12, 14, 16), 2)
         print("\n\nRIGHT", right_arm_angle)
@@ -118,8 +121,12 @@ class Machamp:
         # Adiciona os dados coletados na lista
         self.MAP["RightArmAngle"] = right_arm_angle
         self.MAP["LeftArmAngle"] = left_arm_angle
+        # print("Database =", self.MAP)
+        df = pd.DataFrame(list(self.MAP.items()), columns=["Label", "Value"])
+        print(df)
 
         self.exercise_counter(self.percentual)
+
         self.drawInScreen(img)
 
     def exercise_counter(self, per):
@@ -147,9 +154,9 @@ class Machamp:
         self.pTime = cTime
         return fps
 
-    def drawInScreen(self, _img):
+    def drawInScreen(self, img):
         # Por exemplo, aumentar para o dobro da largura e altura
-        img = cv2.resize(_img, (0, 0), fx=4, fy=2)
+        img = cv2.resize(img, (0, 0), fx=4, fy=2)
 
         fps = self.temporizador(img)
 
@@ -170,6 +177,82 @@ class Machamp:
             img,
             f"{int(self.contador)}",
             (45, 670),
+            cv2.FONT_HERSHEY_PLAIN,
+            12,
+            (255, 0, 0),
+            25,
+        )
+
+        cv2.rectangle(
+            img,
+            (1100, 100),
+            (1175, 650),
+            (0, 255, 0),
+            3,
+        )
+        cv2.rectangle(
+            img,
+            (1100, int(self.bar)),
+            (1175, 650),
+            self.color,
+            cv2.FILLED,
+        )
+        cv2.putText(
+            img,
+            f"{int(self.percentual)}%",
+            (1100, 75),
+            cv2.FONT_HERSHEY_PLAIN,
+            4,
+            self.color,
+            4,
+        )
+
+        self.exibir_imagem(img)
+
+    def capturandoVideoCamera(self, img, detector):
+        img = cv2.resize(img, (0, 0), fx=2, fy=1.5)
+
+        # right arm
+        right_arm_angle = round(detector.findAngle(img, 12, 14, 16), 2)
+        print("\n\nRIGHT", right_arm_angle)
+
+        # left arm
+        left_arm_angle = round(detector.findAngle(img, 11, 13, 15), 2)
+        print("LEFT", left_arm_angle)
+
+        # Percentual de execução
+        self.percentual = np.interp(left_arm_angle, (210, 310), (0, 100))
+        self.bar = np.interp(left_arm_angle, (220, 310), (650, 100))
+        print(f"Percentual = {   self.percentual }%")
+
+        # Adiciona os dados coletados na lista
+        self.MAP["RightArmAngle"] = right_arm_angle
+        self.MAP["LeftArmAngle"] = left_arm_angle
+        # print("Database =", self.MAP)
+        df = pd.DataFrame(list(self.MAP.items()), columns=["Label", "Value"])
+        print(df)
+
+        self.exercise_counter(self.percentual)
+
+        fps = self.temporizador(img)
+
+        cv2.putText(
+            img,
+            f"FPS: {int(fps)}",
+            (10, 70),
+            cv2.FONT_HERSHEY_PLAIN,
+            3,
+            (255, 0, 0),
+            3,
+        )
+
+        # Desenha as linhas que representam os limites superior e inferior
+        cv2.rectangle(img, (0, 450), (300, 800), (0, 255, 0), cv2.FILLED)
+
+        cv2.putText(
+            img,
+            f"{int(self.contador)}",
+            (45, 650),
             cv2.FONT_HERSHEY_PLAIN,
             12,
             (255, 0, 0),

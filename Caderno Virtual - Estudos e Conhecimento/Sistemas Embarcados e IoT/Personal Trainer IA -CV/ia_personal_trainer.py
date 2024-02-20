@@ -19,14 +19,32 @@ detector = poseDetector()
 pokemon = Machamp()
 
 
-def loop_trainer_video():
-    cap = cv2.VideoCapture("Personal Trainer IA -CV/assets/flexao_normal.mp4")
+def abrir_webcam_nativa():
+    cap = cv2.VideoCapture(0)
+    return cap
+
+
+def loop_trainer_video(choice):
+    capCamera = False
+
+    if choice == 1:
+
+        cap = cv2.VideoCapture(
+            "/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Personal Trainer IA -CV/assets/flexao_normal.mp4"
+        )
+    else:
+        capCamera = True
+        cap = abrir_webcam_nativa()
 
     # Iniciar o processamento de vídeo
     while True:
         success, img = cap.read()
+        fps = pokemon.temporizador(img)
         if not success:
+            print("erro :(")
             break
+
+        print("\n\nPERSONAL IA TRAINER", int(fps) - 100, "FPS")
 
         # Processar a imagem
         img = detector.findPose(img, draw=True)
@@ -35,9 +53,16 @@ def loop_trainer_video():
 
         # Verifica se tem alguem
         if len(lmList) != 0:
-            pokemon.processVideo(img, detector)
 
-        # pokemon.exibir_imagem(img)
+            if capCamera:
+                print("WEBCAM", capCamera)
+                pokemon.capturandoVideoCamera(img, detector)
+
+            else:
+                pokemon.processVideo(img, detector)
+
+        else:
+            print("Nao consigo achar ninguem :( ")
 
     cv2.destroyAllWindows()
 
@@ -72,7 +97,7 @@ def loop_trainer_foto():
 
 if __name__ == "__main__":
     # loop_trainer_foto()
-    loop_trainer_video()
+    loop_trainer_video(1)
 
     # utils_functions.processar_imagens_diretorio(
     #   pokemon, detector, "Personal Trainer IA -CV/assets"
