@@ -97,7 +97,7 @@ def loop_trainer_foto():
 
 if __name__ == "__main__":
     # loop_trainer_foto()
-    loop_trainer_video(1)
+    loop_trainer_video(0)
 
     # utils_functions.processar_imagens_diretorio(
     #   pokemon, detector, "Personal Trainer IA -CV/assets"
