@@ -26,6 +26,7 @@ class AlgEvolution:
         self.best_solutions_array = []
         self.best_individual_array = []
         self.fitness_array = []
+        self.CONJUNTO_ELITE_ARRAY = []
         self.data = {}
         self.repopulation_counter = 0
         self.allFitnessValues = {}
@@ -87,21 +88,70 @@ class AlgEvolution:
         for i in range(len(self.hof)):
             population[-(i + 1)] = self.setup.toolbox.clone(self.hof[i])
 
+    #! RCE app
     def apply_RCE(self):
-        self.validate_RCE()
+        elite = self.select_candidates_CE(self.pop)
+        self.determinate_ConjuntoElite()
+        new_population = self.repopulate_RCE(self.pop, elite)
 
-    def validate_RCE(self):
-        if self.repopulation_counter == 25:
-            return True
+    def select_elite(self, population, elite_percent=0.2):
+        """Seleciona os melhores indivíduos para formar o conjunto elite."""
+        sorted_population = sorted(
+            population, key=lambda x: x.fitness.values[0], reverse=True
+        )
+        elite_size = int(len(population) * elite_percent)
+        elite = sorted_population[:elite_size]
+        return elite
 
-        # Critério 30% do elitismo
+    def repopulate_RCE(self, population, elite):
+        """Realiza a repopulação substituindo parte da população pelo conjunto elite."""
+        new_population = elite[:]
+        remaining = len(population) - len(elite)
+        new_population.extend(random.choices(population, k=remaining))
+        return new_population
 
+    def get_top_k_percent_individuals(self, population, k=0.3):
+        """Retorna os k% dos melhores indivíduos, juntamente com suas variáveis de decisão e fitness."""
+        sorted_population = sorted(population, key=lambda x: x.fitness.values[0])
+        k_percent = int(k * len(population))
+        top_k_percent = sorted_population[-k_percent:]
+        return top_k_percent
+
+    def select_candidates_CE(self, population, elite_percent=0.2):
+        """Seleciona os melhores indivíduos para formar o conjunto elite."""
+        elite_size = int(len(population) * elite_percent)
+        top_k_percent = self.get_top_k_percent_individuals(population)
+        elite = [ind for ind in top_k_percent if ind not in self.CONJUNTO_ELITE]
+        if len(self.CONJUNTO_ELITE) + len(elite) > elite_size:
+            elite = elite[: elite_size - len(self.CONJUNTO_ELITE)]
+        self.CONJUNTO_ELITE.extend(elite)
+        return elite
+
+    def check_fitness(self, variables_decisao):
+        """Verifica o valor do fitness correspondente às variáveis de decisão do indivíduo."""
+        for ind in self.CONJUNTO_ELITE:
+            if ind["variaveis_decisao"] == variables_decisao:
+                return ind["fitness"]
+        return None
+
+    def determinate_ConjuntoElite(self):
+        isDiferente = False
+        """Comparar os 3 melhores fitness e verificar a diferença entre as variaveis de decisão."""
         # Critério diferença minima das variaveis de decisao entre 3 melhores solucoes
-
-        # Critério Pegar os melhores o CONJUNTO ELITE (20%) com o restante aleatorio(80%)
-
+        if isDiferente:
+            self.CONJUNTO_ELITE_ARRAY.append(self.pop[0])
+            self.CONJUNTO_ELITE_ARRAY.append(self.pop[1])
+            self.CONJUNTO_ELITE_ARRAY.append(self.pop[2])
+            print(self.CONJUNTO_ELITE_ARRAY)
         else:
-            return False
+            print(self.CONJUNTO_ELITE_ARRAY)
+            print("Esse indiviuo tem que ser selecionado novamente")
+
+    def generateConjuntoEliteWithRandomPopulation(
+        self,
+    ):
+        # Critério Pegar os melhores o CONJUNTO ELITE (20%) com o restante aleatorio(80%)
+        pass
 
     def run(self, RCE=False):
         # Avaliar o fitness da população inicial
@@ -185,6 +235,7 @@ class AlgEvolution:
 
         # Criar DataFrame com as melhores soluções
         best_df = pd.DataFrame(self.best_individual_array)
+        print("\nBest solutions DataFrame:\n")
         display(best_df)
 
         # Retornar população final, logbook e elite
