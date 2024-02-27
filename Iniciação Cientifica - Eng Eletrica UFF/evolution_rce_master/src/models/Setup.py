@@ -10,11 +10,22 @@ import pandas as pd
 
 
 class Setup:
-    def __init__(self):
-        self.CXPB, self.MUTPB, self.NGEN, self.POP_SIZE = 0.9, 0.05, 100, 100
-        self.IND_SIZE = 10
+    def __init__(self, params):
+        self.params = params
+        self.CXPB = params["CXPB"]
+        self.MUTPB = params["MUTPB"]
+        self.NGEN = params["NGEN"]
+        self.POP_SIZE = params["POP_SIZE"]
+        self.IND_SIZE = params["IND_SIZE"]
+        self.CROSSOVER, self.MUTACAO, self.NUM_GENES, self.POPULATION_SIZE = (
+            0.9,
+            0.05,
+            100,
+            100,
+        )
+        self.SIZE_INDIVIDUAL = 10
         self.evaluations = 0
-        self.num_repopulation = int(self.NGEN * 0.20)
+        self.num_repopulation = int(self.NUM_GENES * 0.20)
         self.dataset = {}
         self.beta_constants = {}
 
@@ -28,7 +39,7 @@ class Setup:
             tools.initRepeat,
             creator.Individual,
             self.toolbox.attribute,
-            n=self.IND_SIZE,
+            n=self.SIZE_INDIVIDUAL,
         )
         self.toolbox.register(
             "population", tools.initRepeat, list, self.toolbox.individual
@@ -38,25 +49,25 @@ class Setup:
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("evaluate", self.evaluate)
-        self.toolbox.register("repopulate", self.repopulate_best_individuals)
+        # self.toolbox.register("repopulate", self.repopulate_best_individuals)
 
     def gerarDataset(self, excel):
         df = pd.read_excel(excel)
         print(df.columns)
         self.dataset = {
-            "CXPB": self.CXPB,
-            "TAXA_MUTACAO": self.MUTPB,
-            "NUM_GEN": self.NGEN,
-            "POP_SIZE": self.POP_SIZE,
-            "IND_SIZE": self.IND_SIZE,
+            "CXPB": self.CROSSOVER,
+            "TAXA_MUTACAO": self.MUTACAO,
+            "NUM_GEN": self.NUM_GENES,
+            "POP_SIZE": self.POPULATION_SIZE,
+            "IND_SIZE": self.SIZE_INDIVIDUAL,
             "evaluations": self.evaluations,
             "NUM_REPOPULATION": self.num_repopulation,
         }
 
     def evaluate(self, individual):
         self.evaluations += 1
-        rastrigin = 10 * self.IND_SIZE
-        for i in range(self.IND_SIZE):
+        rastrigin = 10 * self.SIZE_INDIVIDUAL
+        for i in range(self.SIZE_INDIVIDUAL):
             rastrigin += individual[i] * individual[i] - 10 * (
                 math.cos(2 * np.pi * individual[i])
             )
@@ -89,9 +100,3 @@ class Setup:
         print()
         print("Ótimo global da função Rosenbrock: ", rosenbrock_minimum)
         print("Solução: ", rosenbrock_solution)
-
-    def repopulate_best_individuals(self):
-        if self.repopulation_counter == 25:
-            best_individuals = self.hof[: self.setup.POP_SIZE]
-            self.pop[:] = best_individuals
-            self.repopulation_counter = 0

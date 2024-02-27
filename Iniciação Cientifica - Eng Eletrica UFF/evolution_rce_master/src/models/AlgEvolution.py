@@ -29,6 +29,11 @@ class AlgEvolution:
         self.repopulation_counter = 0
         self.allFitnessValues = {}
 
+    def repopulate_best_individuals(self):
+        best_individuals = self.hof[: self.setup.POP_SIZE]
+        self.pop[:] = best_individuals
+        self.repopulation_counter = 0
+
     def get_population_dataframes(self):
         best_df = pd.DataFrame(self.best_individual_array)
         fitness_df = pd.DataFrame(self.fitness_array)
@@ -147,8 +152,8 @@ class AlgEvolution:
                 and (g + 1) % self.setup.num_repopulation == 0
             ):
                 print("\nRCE being applied!")
-                # self.repopulate_best_individuals()
-                self.setup.toolbox.repopulate()
+                self.repopulate_best_individuals()
+                # self.setup.toolbox.repopulate()
 
             else:
                 self.pop[:] = offspring

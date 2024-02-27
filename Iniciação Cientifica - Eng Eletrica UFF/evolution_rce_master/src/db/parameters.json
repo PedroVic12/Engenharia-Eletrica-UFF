@@ -1,0 +1,9 @@
+{
+    "CXPB": 0.9,
+    "MUTPB": 0.05,
+    "NGEN": 100,
+    "POP_SIZE": 100,
+    "IND_SIZE": 10,
+    "evaluations": 0,
+    "num_repopulation": 20
+}
