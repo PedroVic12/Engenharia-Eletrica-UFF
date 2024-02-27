@@ -13,6 +13,24 @@ class DataExploration:
     def __init__(self):
         self.fit_array = []
 
+    def statistics_per_generation_df(self, logbook):
+        generations = logbook.select("gen")
+        min_fitness = logbook.select("min")
+        avg_fitness = logbook.select("avg")
+        max_fitness = logbook.select("max")
+        std_fitness = logbook.select("std")
+
+        data = {
+            "Generation": generations,
+            "Min Fitness": min_fitness,
+            "Average Fitness": avg_fitness,
+            "Max Fitness": max_fitness,
+            "Std Fitness": std_fitness,
+        }
+
+        df = pd.DataFrame(data)
+        return df
+
     def calculate_stats(self, logbook):
 
         fit_avg = logbook.select("avg")
@@ -53,8 +71,9 @@ class DataExploration:
         print("\nBest solution fitness = ", best_solution_fitness)
 
         self.grafico_convergencia(generation, statics, repopulation)
+        self.graficoBarrasFitnessGeneration(generation, statics, repopulation)
 
-        self.plot_population(pop, repopulation)
+        # self.plot_population(pop, repopulation)
 
     def grafico_convergencia(self, gen, lista, repopulation=False):
         fig, ax1 = plt.subplots()
@@ -85,14 +104,15 @@ class DataExploration:
 
         if len(generation) > 1:
             best_solutions = [min(lista["min_fitness"]) for i in range(len(generation))]
-            print(best_solutions)
             avg_fitness = lista["avg_fitness"]
-            generations = np.arange(2, len(generation) + 1)
+            generations = np.arange(1, len(generation) + 1)
+            print(len(generations), len(best_solutions), len(avg_fitness))
 
             ax.bar(generations, best_solutions, color="b", label="Melhor Fitness")
             ax.plot(
                 generations,
-                avg_fitness[1:],
+                avg_fitness,
+                marker="o",
                 color="r",
                 linestyle="--",
                 label="Média Fitness por Geração",
@@ -136,7 +156,7 @@ class DataExploration:
             plt.title("Sem Repopulação")
         plt.show()
 
-    def plot_population(self, population, repopulation=False):
+    def plot_diversidade(self, population, repopulation=False):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
 

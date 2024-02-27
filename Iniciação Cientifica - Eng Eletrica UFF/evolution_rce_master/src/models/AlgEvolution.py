@@ -17,6 +17,7 @@ class AlgEvolution:
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
         self.stats.register("max", np.max)
+
         self.logbook = tools.Logbook()
         self.hof = tools.HallOfFame(1)
         self.pop = self.setup.toolbox.population(n=self.setup.POP_SIZE)
@@ -29,7 +30,7 @@ class AlgEvolution:
         self.repopulation_counter = 0
         self.allFitnessValues = {}
 
-    def repopulate_best_individuals(self):
+    def apply_RCE(self):
         best_individuals = self.hof[: self.setup.POP_SIZE]
         self.pop[:] = best_individuals
         self.repopulation_counter = 0
@@ -81,90 +82,110 @@ class AlgEvolution:
         return delta
 
     def apply_elitism(self, population):
+        """Ordena a população com base nos valores de aptidão dos indivíduos, em ordem crescente. os melhores indivíduos da elite são adicionados à população atual, substituindo os piores indivíduos, com base na ordem crescente de aptidão."""
         population.sort(key=lambda x: x.fitness.values)
         for i in range(len(self.hof)):
             population[-(i + 1)] = self.setup.toolbox.clone(self.hof[i])
 
-    def repopulate_best_individuals(self):
-        if self.repopulation_counter == 25:
-            best_individuals = self.hof[: self.setup.POP_SIZE]
-            self.pop[:] = best_individuals
-            self.repopulation_counter = 0
+    def apply_RCE(self):
+        self.validate_RCE()
 
-    def run(self):
+    def validate_RCE(self):
+        if self.repopulation_counter == 25:
+            return True
+
+        # Critério 30% do elitismo
+
+        # Critério diferença minima das variaveis de decisao entre 3 melhores solucoes
+
+        # Critério Pegar os melhores o CONJUNTO ELITE (20%) com o restante aleatorio(80%)
+
+        else:
+            return False
+
+    def run(self, RCE=False):
+        # Avaliar o fitness da população inicial
         fitnesses = map(self.setup.toolbox.evaluate, self.pop)
         for ind, fit in zip(self.pop, fitnesses):
             ind.fitness.values = [fit]
 
+        # Loop principal através das gerações
         for g in range(self.setup.NGEN):
 
-            # print(f"---------------------- Generation {g+1} ---------------------------------------------")
-
+            # Selecionar os indivíduos para reprodução
             offspring = self.setup.toolbox.select(self.pop, k=len(self.pop))
             offspring = [self.setup.toolbox.clone(ind) for ind in offspring]
 
+            # Aplicar crossover
             for child1, child2 in zip(offspring[::2], offspring[1::2]):
                 if random.random() < self.setup.CXPB:
                     self.setup.toolbox.mate(child1, child2)
                     del child1.fitness.values
                     del child2.fitness.values
 
+            # Aplicar mutação
             for mutant in offspring:
                 if random.random() < self.setup.MUTPB:
                     self.setup.toolbox.mutate(mutant)
                     del mutant.fitness.values
 
+            # Avaliar o fitness dos novos indivíduos
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
             fitnesses = map(self.setup.toolbox.evaluate, invalid_ind)
             for ind, fit in zip(invalid_ind, fitnesses):
                 ind.fitness.values = [fit]
 
-            self.best_solutions_array.append(self.hof[0].fitness.values)
-            # Calcula a média de fitness para cada geração
+            # Registrar estatísticas e melhores soluções
             avg_fitness_per_generation = np.mean(
                 [ind.fitness.values[0] for ind in self.pop]
             )
-            desvio_padrao = np.std([ind.fitness.values[0] for ind in self.pop])
+            std_deviation = np.std([ind.fitness.values[0] for ind in self.pop])
 
-            # print(f"Média de fitness na geração {g+1}: {avg_fitness_per_generation}")
-            self.data = {}
-            self.data["Generations"] = g + 1
-            self.data["Variaveis de Decisão"] = self.hof[0]
-            self.data["Evaluations"] = self.setup.evaluations
-            self.data["Best Fitness"] = self.hof[0].fitness.values
-            self.data["Media"] = avg_fitness_per_generation
-            self.data["Desvio Padrao"] = desvio_padrao
+            self.data = {
+                "Generations": g + 1,
+                "Variaveis de Decisão": self.hof[0],
+                "Evaluations": self.setup.evaluations,
+                "Best Fitness": self.hof[0].fitness.values,
+                "Media": avg_fitness_per_generation,
+                "Desvio Padrao": std_deviation,
+            }
             self.best_individual_array.append(self.data)
 
             for ind in self.pop:
-                self.allFitnessValues = {}
-                self.allFitnessValues["Generations"] = g + 1
-                self.allFitnessValues["Fitness"] = ind.fitness.values[0]
-                self.allFitnessValues["Evaluations"] = self.setup.evaluations
+                self.allFitnessValues = {
+                    "Generations": g + 1,
+                    "Fitness": ind.fitness.values[0],
+                    "Evaluations": self.setup.evaluations,
+                }
                 self.fitness_array.append(self.allFitnessValues)
 
-            self.hof.update(self.pop)
-            self.pop[0] = self.setup.toolbox.clone(self.hof[0])
-
-            # self.apply_elitism(self.pop)
+            # Aplicar repopulação ou elitismo
             if (
                 self.setup.num_repopulation != 0
                 and (g + 1) % self.setup.num_repopulation == 0
             ):
-                print("\nRCE being applied!")
-                self.repopulate_best_individuals()
-                # self.setup.toolbox.repopulate()
+                if RCE:
+                    print("\nRCE being applied!")
+                    self.apply_RCE()
+                    # self.plot_conjuntoElite()
 
+                else:
+                    print("\nSimple Elitism being applied! in Generation:", g + 1)
+
+                    # Atualizar a elite e a população
+                    self.hof.update(self.pop)
+                    self.pop[0] = self.setup.toolbox.clone(self.hof[0])
             else:
                 self.pop[:] = offspring
 
+            # Registrar estatísticas no logbook
             record = self.stats.compile(self.pop)
             self.logbook.record(gen=g, **record)
             self.repopulation_counter += 1
 
+        # Criar DataFrame com as melhores soluções
         best_df = pd.DataFrame(self.best_individual_array)
         display(best_df)
-        # fitness_df = pd.DataFrame(self.fitness_array)
-        # display(fitness_df.loc[fitness_df["Generations"] == 4])
 
+        # Retornar população final, logbook e elite
         return self.pop, self.logbook, self.hof[0]
