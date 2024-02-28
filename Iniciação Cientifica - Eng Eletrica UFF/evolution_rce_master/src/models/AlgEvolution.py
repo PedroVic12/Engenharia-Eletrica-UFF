@@ -34,6 +34,17 @@ class AlgEvolution:
         self.allFitnessValues = {}
         self.validateCounter = 0
 
+    def calculateRastriginValidate(self):
+        #comparar soluçoes com otimo global do rastrigin
+        """
+        Definir a função Rastrigin.
+        Encontrar o ótimo global da função Rastrigin usando os valores fornecidos.
+        Comparar as soluções obtidas com o ótimo global.
+        Calcular a porcentagem de proximidade das soluções em relação ao ótimo global.
+        """
+        
+    
+    
     #!RCE
     def elitismoSimples(self, current_generation):
         print("\nSimple Elitism being applied! in Generation:", current_generation + 1)
@@ -43,9 +54,9 @@ class AlgEvolution:
     def conjuntoElite(self, best_ind_1, delta=1):
         """Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes."""
         isDiferente = False
-        already_added = (
+        CONJUNTO_ELITE_RCE = (
             set()
-        )  # Conjunto para armazenar as variáveis de decisão dos indivíduos já adicionados
+        )  
 
         # Loop sobre os indivíduos da geração atual
         for i in range(len(best_ind_1)):
@@ -72,6 +83,7 @@ class AlgEvolution:
                             var_index
                         ]
                         other_var = other_individual["Variaveis de Decisão"][var_index]
+                        print("calculando...")
                         print(f"{current_var}x{other_var}")
 
                         # Verificar se a diferença entre as variáveis de decisão é maior do que o delta
@@ -81,15 +93,16 @@ class AlgEvolution:
                     # Se o número de diferenças for maior ou igual a 3 e o indivíduo ainda não tiver sido adicionado, adicionamos ao conjunto elite
                     if (
                         diff_counter >= 3
-                        and current_individual["index"] not in already_added
+                        and current_individual["index"] not in CONJUNTO_ELITE_RCE
                     ):
                         isDiferente = True
+                        print("individuo diferente detectado")
                         self.pop_RCE.append(current_individual)
-                        already_added.add(
+                        CONJUNTO_ELITE_RCE.add(
                             current_individual["index"]
                         )  # Adiciona as variáveis de decisão ao conjunto already_added
                         print(
-                            "Indivíduo adicionado ao conjunto elite:",
+                            "Indivíduo adicionado ao conjunto elite:  O.O  '-' ",
                             current_individual["index"],
                         )
 
@@ -150,7 +163,6 @@ class AlgEvolution:
         self.compareIndividual()
 
         #!Repopulate
-        # Filtrar os indivíduos com fitness não nulo
         elite_with_fitness = [
             ind for ind in self.CONJUNTO_ELITE_ARRAY if ind.fitness.values
         ]
@@ -268,7 +280,7 @@ class AlgEvolution:
                 and (current_generation + 1) % self.setup.num_repopulation == 0
             ):
 
-                print("\nRCE being applied!")
+                print(f"\nRCE being applied!  - Generation = {current_generation} ",)
                 self.apply_RCE(offspring)
                 # self.plot_conjuntoElite()
 

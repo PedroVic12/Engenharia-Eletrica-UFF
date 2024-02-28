@@ -57,6 +57,12 @@ class DataExploration:
             "std_fitness": fit_std,
         }
 
+    def rastrigin(self,x):
+        A = 10
+        return A * len(x) + sum(
+            [(x[i] ** 2 - A * np.cos(2 * math.pi * x[i])) for i in range(len(x))]
+        )
+
     def visualize(self, logbook, pop, repopulation=False):
         generation = logbook.select("gen")
         statics = self.calculate_stats(logbook)
@@ -74,13 +80,36 @@ class DataExploration:
             best_solution_variables = logbook.select("min")
             best_solution_fitness = min(statics["min_fitness"])
 
+        # Soluções do problema
+        print("Soluções do problema")
+        print("\nBest solution index = ", best_solution_index)
         print("\nBest solution variables =\n", best_solution_variables)
         print("\nBest solution fitness = ", best_solution_fitness)
 
-        self.grafico_convergencia(generation, statics, repopulation)
-        self.graficoBarrasFitnessGeneration(generation, statics, repopulation)
 
-        # self.plot_population(pop, repopulation)
+        try:
+            # Encontrar o ótimo global da função Rastrigin usando os valores fornecidos.
+            opt = minimize(
+                self.rastrigin, best_solution_variables, method="Nelder-Mead", tol=1e-6
+            )
+            print("\nÓtimo global da função Rastrigin = ", opt.fun)
+            print("\nSolução ótima global = ", opt.x)
+            # Comparar as soluções obt
+            print(
+                "\nPorcentagem de proximidade da solução em relação ao ótimo global = ",
+                (1 - (best_solution_fitness / opt.fun)) * 100,
+                "%",
+            )
+            distancia_otimoglobal = abs
+            print(
+                "\nDistância da solução em relação ao ótimo global = ",
+                distancia_otimoglobal,
+            )
+
+            self.grafico_convergencia(generation, statics, repopulation)
+            self.graficoBarrasFitnessGeneration(generation, statics, repopulation)
+        except:
+            print("Erro validation :(")
 
     def grafico_convergencia(self, gen, lista, repopulation=False):
         fig, ax1 = plt.subplots()
