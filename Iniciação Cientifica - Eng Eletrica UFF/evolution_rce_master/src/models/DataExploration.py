@@ -31,6 +31,13 @@ class DataExploration:
         df = pd.DataFrame(data)
         return df
 
+    def displayDataFrameInfo(self, array, text):
+        # Criar DataFrame com as melhores soluções
+        best_df = pd.DataFrame(array)
+        print(f"\n{text}\n")
+        display(best_df)
+        return best_df
+
     def calculate_stats(self, logbook):
 
         fit_avg = logbook.select("avg")

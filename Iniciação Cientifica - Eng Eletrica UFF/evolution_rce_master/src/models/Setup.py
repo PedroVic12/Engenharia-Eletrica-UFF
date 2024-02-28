@@ -49,7 +49,6 @@ class Setup:
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("evaluate", self.evaluate)
-        # self.toolbox.register("repopulate", self.repopulate_best_individuals)
 
     def gerarDataset(self, excel):
         df = pd.read_excel(excel)
