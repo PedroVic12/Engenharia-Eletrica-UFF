@@ -43,6 +43,9 @@ class AlgEvolution:
     def conjuntoElite(self, best_ind_1, delta=1):
         """Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes."""
         isDiferente = False
+        already_added = (
+            set()
+        )  # Conjunto para armazenar as variáveis de decisão dos indivíduos já adicionados
 
         # Loop sobre os indivíduos da geração atual
         for i in range(len(best_ind_1)):
@@ -53,32 +56,51 @@ class AlgEvolution:
             for j in range(i + 1, len(best_ind_1)):
                 other_individual = best_ind_1[j]
 
-                # Contador para acompanhar o número de diferenças entre as variáveis de decisão
-                diff_counter = 0
-
-                # Loop sobre as variáveis de decisão para comparar
-                for var_index in range(len(current_individual["Variaveis de Decisão"])):
-                    current_var = current_individual["Variaveis de Decisão"][var_index]
-                    other_var = other_individual["Variaveis de Decisão"][var_index]
-
-                    # Verificar se a diferença entre as variáveis de decisão é maior do que o delta
-                    if abs(current_var - other_var) > delta:
-                        diff_counter += 1
-
-                # Se o número de diferenças for maior ou igual a 3, adicionamos o indivíduo ao conjunto elite
-                if diff_counter >= 3:
-                    isDiferente = True
-                    self.pop_RCE.append(current_individual)
+                if current_individual["Generations"] == other_individual["Generations"]:
                     print(
-                        "Indivíduo adicionado ao conjunto elite:",
-                        current_individual["index"],
+                        f"---> Geração atual {current_individual['Generations']} - {current_individual['index']}x{other_individual['index']}"
                     )
+
+                    # Contador para acompanhar o número de diferenças entre as variáveis de decisão
+                    diff_counter = 0
+
+                    # Loop sobre as variáveis de decisão para comparar
+                    for var_index in range(
+                        len(current_individual["Variaveis de Decisão"])
+                    ):
+                        current_var = current_individual["Variaveis de Decisão"][
+                            var_index
+                        ]
+                        other_var = other_individual["Variaveis de Decisão"][var_index]
+                        print(f"{current_var}x{other_var}")
+
+                        # Verificar se a diferença entre as variáveis de decisão é maior do que o delta
+                        if abs(current_var - other_var) > delta:
+                            diff_counter += 1
+
+                    # Se o número de diferenças for maior ou igual a 3 e o indivíduo ainda não tiver sido adicionado, adicionamos ao conjunto elite
+                    if (
+                        diff_counter >= 3
+                        and current_individual["index"] not in already_added
+                    ):
+                        isDiferente = True
+                        self.pop_RCE.append(current_individual)
+                        already_added.add(
+                            current_individual["index"]
+                        )  # Adiciona as variáveis de decisão ao conjunto already_added
+                        print(
+                            "Indivíduo adicionado ao conjunto elite:",
+                            current_individual["index"],
+                        )
 
         # Se encontrarmos pelo menos um indivíduo com as condições especificadas, exibimos o conjunto elite
         if isDiferente:
-            print("Conjunto Elite:", self.pop_RCE)
+            print("Conjunto Elite atualizado!  ultimo inserido = ", self.pop_RCE[-1])
+
         else:
             print("Nenhum indivíduo atende aos critérios.")
+
+        
 
     def determinate_ConjuntoElite(self, best_ind_1, delta=3):
         """Comparar as 5 variaveis de decisao de de cada inviduo e verfiicar se tem 3 diferentes."""
