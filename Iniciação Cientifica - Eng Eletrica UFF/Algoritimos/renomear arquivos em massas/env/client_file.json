@@ -1,0 +1,13 @@
+{
+    "type": "service_account",
+    "project_id": "visaocomputacional-388314",
+    "private_key_id": "d8c7e48f25ea9f222585d21ca0d9f73939a9ca54",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCWrAe2HwIvYrY+\nYLeQTPjIUgfi7JvfIjkmXeDjRIvkCgoAD6sO57zJIYdEiBwE1al3bfD+J97tPWW7\nPYO0Pn879vVybJUF2GRx+6B1vwu0eNcZSahdI7M1nLRlU8sP1n0ABriE+vr2VZj2\nM18JEA5xNddzGbBQD0HG+/U9t6L9Rr7U8/z5zpXT0Wx5t3pscqAruCPpunZhe409\n/6FcgEOPEtujXq/fa0B/Y0BuwZI3YnxdbzE4mZ7raW9iKaOFBT/0wzwnTkNZVUiX\nxwguZTeRM1w9b8Nopf1Ce93Q/K9gbQXjwmshngif2ZHmiod5Mv092sqgpLIw+hcl\nRrYE1EVzAgMBAAECggEAQt4UCgpW8OqxEJvhu2O9oUFuiJITVwKcNF/Dd3krUEf4\nSjCp7NKBoQ2FN6/kJ20faYZcRp8xOz5dUKyrL6nw0471PRPdSxvO8BsJClh//FcI\ntwtOcg9u8CMcmD+Ixf2dug5Bg5rTF9HDMbh4u8/paOrJNCa5bb5npcSaAQrnhdla\nEzvH/V0FUHYJ3pyIm5mON3Ud6WvfwHihwdEbXcpeUbHZ7l02cSM1aJDwxaovuqTM\n0h6sQUr8TWbDzFW9s1apLVcvralfCyRgkkXtkaIKF+UzZCVSJTntgWwT5W4WF4aO\nJyc7jIBljFjyaqRxHNfwS+EVGPwCG4ALmZlxyWYeaQKBgQDRr9aSJAmUE6qNtqW7\nGf0EGBd3KeVihw8djDnXG2Xq6y5mt7B7Adc8mh6hSRJ+zLn4rCOn5lBi+q5ZQhut\nDK76+t92dRIMx7b+yRy/h7Urzl4sWv2bi/S96nTAxo/ip0q8FxH8Dg52fddiTnsq\n0s/IEKtqk9HbcPrPbXqASnMDTwKBgQC381wTRglI/y/oHNFOunx+iapcwQN/JNtf\nPWxIdsvQ0/vfbd3RLGR40gz5Si9tyTzUSo5mebdJVVEp+O0EclS7v1iJXr/zvbqq\n9Kh41gJxH37SRkT//nSUPim6YsTJXUOUWC9yQZX6ZGwnGFaoltoXnOcfHCNEz9bM\nwpaahMlinQKBgHlMBYy+aggNpFCcAp0MOI/gu9pEExx+0mCeWGs1vyw45bunsOBH\nPVIiOWvFUHynQ0E1mt6qXYAUUTzy//2H48Tt0My+hjV8ZkBW6FlnUIdJtrJj5GbR\nfD9MXEOT2XIcoh/SHKY5H2at/yUwDxHDp0ytT+u0HOabIYtSYlXKO2QDAoGAJL0M\n+ah2OEcHKWOABipGrPsPtGC0MxOIYLgixUI8qKN93XzS3XDxTBQflTZUzKdxZ7DQ\nSfUrPxE0GZ7mr4mqFKk9pInw6lxNSNF+SEvtxuwUZyizpTEL1YOoz9nkFZdz5M/M\nAhTJQG4ID7LTs+4U9rxWiKcVACxGaTS/4XJ9yh0CgYB5TXP/Q7Nh6fi6Y73AePUh\nNeaJySpqokgh4aImmXfeNlOubQoxqIaAPFZAJjbWoYUgfazwt1yZeKWOMI5oyrTG\nTjsjlX5z3WLT7/k8dWSb6nzCD9IB/mx11hPUU0CbLsG/ux/sT5a3OS47cRMhDhIF\neg8IC4UgOD2FCqX5jmFmjA==\n-----END PRIVATE KEY-----\n",
+    "client_email": "visao-computacional-relatorios@visaocomputacional-388314.iam.gserviceaccount.com",
+    "client_id": "110006386880160293539",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/visao-computacional-relatorios%40visaocomputacional-388314.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+}
