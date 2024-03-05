@@ -33,44 +33,75 @@ class AlgEvolution:
         self.repopulation_counter = 0
         self.allFitnessValues = {}
         self.validateCounter = 0
+        self.CONJUNTO_ELITE_RCE = set()
 
-    def calculateRastriginValidate(self):
-        #comparar soluçoes com otimo global do rastrigin
-        """
-        Definir a função Rastrigin.
-        Encontrar o ótimo global da função Rastrigin usando os valores fornecidos.
-        Comparar as soluções obtidas com o ótimo global.
-        Calcular a porcentagem de proximidade das soluções em relação ao ótimo global.
-        """
-        
-    
-    
     #!RCE
+    def apply_RCE(self, population):
+        """Aplicar o critério de repopulação com elitismo (RCE)"""
+
+        # Adicionar o melhor indivíduo da população atual ao conjunto elite
+        # self.addBestIndividualOfGenerationToRCE()
+
+        # All individuos gerados
+        all_df = pd.DataFrame(self.allIndividualValuesArray)
+        print("TAMANHO ATUAL", all_df.shape[0])
+        self.add_best_individual_to_RCE(all_df)
+
+        # Critério 1
+        best_ind_array = self.select_best_elitismo_RCE(all_df)
+
+        # Critério 2
+        self.conjuntoElite(best_ind_array)
+
+        # Critério 3
+        self.generateConjuntoEliteWithRandomPopulation()
+
+        # Repopulate
+        elite_with_fitness = [
+            ind for ind in self.CONJUNTO_ELITE_ARRAY if ind.fitness.values
+        ]
+        new_population = self.repopulate_RCE(self.pop, elite_with_fitness)
+        return new_population
+
     def elitismoSimples(self, current_generation):
-        print("\nSimple Elitism being applied! in Generation:", current_generation + 1)
+        # print("\nSimple Elitism being applied! in Generation:", current_generation + 1)
         self.hof.update(self.pop)
         self.pop[0] = self.setup.toolbox.clone(self.hof[0])
+
+        # Coloca no conjunto elite o melhor da geração
+        # self.pop_RCE.append(self.hof[0])
+
+    def add_best_individual_to_RCE(self, df):
+        # Encontrar o índice da linha com o menor fitness
+        index_min_fitness = df["Fitness"].idxmin()
+
+        # Obter os valores da linha com o menor fitness
+        best_individual_values = df.loc[[index_min_fitness]]
+        best_individual_values["RCE"] == "SIM"
+        print("\n\nMelhor da geração Atual")
+        display(best_individual_values)
+
+        # Adicionar os valores ao array self.pop_RCE
+        self.pop_RCE.append(best_individual_values.to_dict("records")[0])
 
     def conjuntoElite(self, best_ind_1, delta=1):
         """Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes."""
         isDiferente = False
-        CONJUNTO_ELITE_RCE = (
-            set()
-        )  
+        print(
+            "\n\nCRITÉRIO 2 - Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes.\n"
+        )
 
         # Loop sobre os indivíduos da geração atual
         for i in range(len(best_ind_1)):
             current_individual = best_ind_1[i]
-            print("\n---> Indivíduo atual:", current_individual["index"])
+            # print("\n---> Indivíduo atual:", current_individual["index"])
 
-            # Loop sobre os outros indivíduos para comparar
+            # Loop sobre os outros indivíduos
             for j in range(i + 1, len(best_ind_1)):
                 other_individual = best_ind_1[j]
 
                 if current_individual["Generations"] == other_individual["Generations"]:
-                    print(
-                        f"---> Geração atual {current_individual['Generations']} - {current_individual['index']}x{other_individual['index']}"
-                    )
+                    # print(                        f"---> Geração atual {current_individual['Generations'] + 1} - {current_individual['index']}x{other_individual['index']}"                    )
 
                     # Contador para acompanhar o número de diferenças entre as variáveis de decisão
                     diff_counter = 0
@@ -83,8 +114,8 @@ class AlgEvolution:
                             var_index
                         ]
                         other_var = other_individual["Variaveis de Decisão"][var_index]
-                        print("calculando...")
-                        print(f"{current_var}x{other_var}")
+                        # print("\ncalculando...")
+                        # print(f"{current_var}x{other_var}")
 
                         # Verificar se a diferença entre as variáveis de decisão é maior do que o delta
                         if abs(current_var - other_var) > delta:
@@ -93,17 +124,16 @@ class AlgEvolution:
                     # Se o número de diferenças for maior ou igual a 3 e o indivíduo ainda não tiver sido adicionado, adicionamos ao conjunto elite
                     if (
                         diff_counter >= 3
-                        and current_individual["index"] not in CONJUNTO_ELITE_RCE
+                        and current_individual["index"] not in self.CONJUNTO_ELITE_RCE
                     ):
                         isDiferente = True
-                        print("individuo diferente detectado")
                         self.pop_RCE.append(current_individual)
-                        CONJUNTO_ELITE_RCE.add(
-                            current_individual["index"]
-                        )  # Adiciona as variáveis de decisão ao conjunto already_added
-                        print(
-                            "Indivíduo adicionado ao conjunto elite:  O.O  '-' ",
+                        self.CONJUNTO_ELITE_RCE.add(
                             current_individual["index"],
+                            # current_individual["Variaveis de Decisão"],
+                        )
+                        print(
+                            f"Indivíduo Index({current_individual['index']}) diferente adicionado ao conjunto elite:  O.O  "
                         )
 
         # Se encontrarmos pelo menos um indivíduo com as condições especificadas, exibimos o conjunto elite
@@ -113,62 +143,20 @@ class AlgEvolution:
         else:
             print("Nenhum indivíduo atende aos critérios.")
 
-        
-
-    def determinate_ConjuntoElite(self, best_ind_1, delta=3):
-        """Comparar as 5 variaveis de decisao de de cada inviduo e verfiicar se tem 3 diferentes."""
-        isDiferente = False
-
-        # checar valores iguais
-        # print(self.pop[0])
-        for i in range(0, len(best_ind_1)):
-            if best_ind_1[i]["Generations"] == best_ind_1[i + 1]["Generations"]:
-                print("\n---> Geração atual", best_ind_1[i]["Generations"])
-                print(
-                    "\n\nComparando",
-                    best_ind_1[i]["Generations"],
-                    best_ind_1[i]["index"],
-                    best_ind_1[i]["Variaveis de Decisão"][0],
-                )
-                print(
-                    best_ind_1[i + 1]["Generations"],
-                    best_ind_1[i + 1]["index"],
-                    best_ind_1[i + 1]["Variaveis de Decisão"][0],
-                )
-
-                if (
-                    best_ind_1[i]["Variaveis de Decisão"][0]
-                    >= best_ind_1[i + 1]["Variaveis de Decisão"][0]
-                ):
-                    print("Variavel 1 igual ou maior")
-                    self.validateCounter += 1
-                    if self.validateCounter > delta:
-                        isDiferente = True
-                        self.pop_RCE.append(best_ind_1[i])
-            else:
-                break
-
-        # Critério diferença minima das variaveis de decisao entre 3 melhores solucoes
-        if isDiferente:
-            self.pop_RCE.append(self.pop[0])
-            print(self.pop_RCE)
-        else:
-            print(len(self.pop))
-            print("Esse individuo tem que ser selecionado novamente")
-
-    def apply_RCE(self, population):
-        df = pd.DataFrame(self.allIndividualValuesArray)
-        best_ind = self.select_best_elitismo_RCE(df)
-        self.conjuntoElite(best_ind)
-        self.compareIndividual()
-
-        #!Repopulate
-        elite_with_fitness = [
-            ind for ind in self.CONJUNTO_ELITE_ARRAY if ind.fitness.values
-        ]
-        new_population = self.repopulate_RCE(self.pop, elite_with_fitness)
+    def addBestIndividualOfGenerationToRCE(self):
+        # Adicionar o melhor indivíduo da população atual ao conjunto elite
+        best_current_ind = self.pop[
+            self.pop.index(self.hof[0])
+        ]  # Melhor indivíduo da população atual
+        print("Best Current Individuo", best_current_ind.fitness.values[0], "\n")
+        if best_current_ind not in self.pop_RCE:
+            self.pop_RCE.append(best_current_ind)
 
     def select_best_elitismo_RCE(self, df, k=0.3):
+        """Seleciona 30% dos melhores indivíduos de cada geração."""
+        print(f"\nCRITÉRIO 1 RCE - 30% dos melhores fitness de cada geração\n")
+
+        # Fatiando o dataframe para obter os 30% melhores indivíduos de cada geração
         taxa = int(self.setup.POP_SIZE * k)
         best_individuals = []
         for i in range(1, self.setup.NGEN):
@@ -185,6 +173,15 @@ class AlgEvolution:
             best_individuals.extend(top_10_dict)
 
         # Retornar a lista de top 10 indivíduos de todas as gerações
+        _df = pd.DataFrame(best_individuals)
+        new_df_sorted = _df[_df["Generations"] == i].sort_values(
+            by=["Fitness"], ascending=False
+        )
+        if new_df_sorted.shape[0] > 0:
+            print("Total de individuos selecionados", new_df_sorted.shape[0])
+            display(new_df_sorted[:taxa])
+        else:
+            print("Nenhum individuo selecionado na geração atual")
         return best_individuals
 
     def repopulate_RCE(self, population, elite):
@@ -192,6 +189,7 @@ class AlgEvolution:
         new_population = elite[:]
         remaining = len(population) - len(elite)
         new_population.extend(random.choices(population, k=remaining))
+
         # Avaliar o fitness dos novos indivíduos
         fitnesses = map(self.setup.toolbox.evaluate, new_population)
         for ind, fit in zip(new_population, fitnesses):
@@ -215,8 +213,21 @@ class AlgEvolution:
     def generateConjuntoEliteWithRandomPopulation(
         self,
     ):
-        # Critério Pegar os melhores o CONJUNTO ELITE (20%) com o restante aleatorio(80%)
-        pass
+        print("\n\nCRITERIO 3 - CONJUNTO ELITE (20%) com o restante aleatorio(80%)\n")
+        try:
+            RCE_df = pd.DataFrame(self.pop_RCE)
+
+            # pegando as porcentagem
+            elite = len(self.pop_RCE) * 0.2
+            random_population = len(self.pop) * 0.8
+            print(self.allIndividualValuesArray)
+            print(f"Taxa Candidatos elite = {elite} | random = {random_population}")
+            print("\n\nCandidatos Conjunto Elite")
+            print("Total conjunto elite selecionados", RCE_df.shape[0])
+            # display(RCE_df[: int(math.ceil(elite))])
+
+        except Exception as e:
+            print("Erro ao gerar novo conjunto elite", e)
 
     #! Main LOOP
     def run(self, RCE=False):
@@ -265,6 +276,7 @@ class AlgEvolution:
                 "Best Fitness": self.hof[0].fitness.values,
                 "Media": avg_fitness_per_generation,
                 "Desvio Padrao": std_deviation,
+                "RCE": " - ",
             }
             self.best_individual_array.append(self.data)
 
@@ -280,7 +292,9 @@ class AlgEvolution:
                 and (current_generation + 1) % self.setup.num_repopulation == 0
             ):
 
-                print(f"\nRCE being applied!  - Generation = {current_generation} ",)
+                print(
+                    f"\nRCE being applied!  - Generation = {current_generation + 1} ",
+                )
                 self.apply_RCE(offspring)
                 # self.plot_conjuntoElite()
 
@@ -304,5 +318,6 @@ class AlgEvolution:
                 "Fitness": self.pop[i].fitness.values,
                 "Media": stats[0],
                 "Desvio Padrao": stats[1],
+                "RCE": " - ",
             }
             self.allIndividualValuesArray.append(datasetIndividuals)

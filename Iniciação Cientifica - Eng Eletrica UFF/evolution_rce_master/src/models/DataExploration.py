@@ -31,6 +31,9 @@ class DataExploration:
         df = pd.DataFrame(data)
         return df
 
+    def plot_diversidade_genes(self):
+        pass
+
     def displayDataFrameInfo(self, array, text):
         # Criar DataFrame com as melhores soluções
         best_df = pd.DataFrame(array)
@@ -57,11 +60,16 @@ class DataExploration:
             "std_fitness": fit_std,
         }
 
-    def rastrigin(self,x):
+    def rastrigin(self, x):
         A = 10
         return A * len(x) + sum(
             [(x[i] ** 2 - A * np.cos(2 * math.pi * x[i])) for i in range(len(x))]
         )
+
+    def cout(self, msg):
+        print("=================================================================")
+        print(msg)
+        print("=================================================================")
 
     def visualize(self, logbook, pop, repopulation=False):
         generation = logbook.select("gen")
@@ -81,11 +89,10 @@ class DataExploration:
             best_solution_fitness = min(statics["min_fitness"])
 
         # Soluções do problema
-        print("Soluções do problema")
+        self.cout("Soluções do problema")
         print("\nBest solution index = ", best_solution_index)
         print("\nBest solution variables =\n", best_solution_variables)
         print("\nBest solution fitness = ", best_solution_fitness)
-
 
         try:
             # Encontrar o ótimo global da função Rastrigin usando os valores fornecidos.
@@ -102,8 +109,7 @@ class DataExploration:
             )
             distancia_otimoglobal = abs
             print(
-                "\nDistância da solução em relação ao ótimo global = ",
-                distancia_otimoglobal,
+                f"\nDistância da solução em relação ao ótimo global = {distancia_otimoglobal}",
             )
 
             self.grafico_convergencia(generation, statics, repopulation)
