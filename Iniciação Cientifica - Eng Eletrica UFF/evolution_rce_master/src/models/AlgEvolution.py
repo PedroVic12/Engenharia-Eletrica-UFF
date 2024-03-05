@@ -78,7 +78,7 @@ class AlgEvolution:
         # Obter os valores da linha com o menor fitness
         best_individual_values = df.loc[[index_min_fitness]]
         best_individual_values["RCE"] == "SIM"
-        print("\n\nMelhor da geração Atual")
+        print("\n\nMelhor da geração:", best_individual_values["Generations"][:5])
         display(best_individual_values)
 
         # Adicionar os valores ao array self.pop_RCE
@@ -87,8 +87,8 @@ class AlgEvolution:
     def conjuntoElite(self, best_ind_1, delta=1):
         """Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes."""
         isDiferente = False
-        print(
-            "\n\nCRITÉRIO 2 - Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes.\n"
+        self.cout(
+            "CRITÉRIO 2 - Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes."
         )
 
         # Loop sobre os indivíduos da geração atual
@@ -154,7 +154,7 @@ class AlgEvolution:
 
     def select_best_elitismo_RCE(self, df, k=0.3):
         """Seleciona 30% dos melhores indivíduos de cada geração."""
-        print(f"\nCRITÉRIO 1 RCE - 30% dos melhores fitness de cada geração\n")
+        self.cout(f"CRITÉRIO 1 RCE - 30% dos melhores fitness de cada geração")
 
         # Fatiando o dataframe para obter os 30% melhores indivíduos de cada geração
         taxa = int(self.setup.POP_SIZE * k)
@@ -182,6 +182,8 @@ class AlgEvolution:
             display(new_df_sorted[:taxa])
         else:
             print("Nenhum individuo selecionado na geração atual")
+
+        print("Total de individuos criterio 1", len(best_individuals))
         return best_individuals
 
     def repopulate_RCE(self, population, elite):
@@ -213,18 +215,16 @@ class AlgEvolution:
     def generateConjuntoEliteWithRandomPopulation(
         self,
     ):
-        print("\n\nCRITERIO 3 - CONJUNTO ELITE (20%) com o restante aleatorio(80%)\n")
+        self.cout("CRITERIO 3 - CONJUNTO ELITE (20%) com o restante aleatorio(80%)")
         try:
             RCE_df = pd.DataFrame(self.pop_RCE)
 
             # pegando as porcentagem
             elite = len(self.pop_RCE) * 0.2
             random_population = len(self.pop) * 0.8
-            print(self.allIndividualValuesArray)
             print(f"Taxa Candidatos elite = {elite} | random = {random_population}")
             print("\n\nCandidatos Conjunto Elite")
-            print("Total conjunto elite selecionados", RCE_df.shape[0])
-            # display(RCE_df[: int(math.ceil(elite))])
+            display(RCE_df[: int(math.ceil(elite))])
 
         except Exception as e:
             print("Erro ao gerar novo conjunto elite", e)
@@ -276,7 +276,6 @@ class AlgEvolution:
                 "Best Fitness": self.hof[0].fitness.values,
                 "Media": avg_fitness_per_generation,
                 "Desvio Padrao": std_deviation,
-                "RCE": " - ",
             }
             self.best_individual_array.append(self.data)
 
@@ -310,7 +309,6 @@ class AlgEvolution:
 
     def visualizarPopAtual(self, geracaoAtual, stats):
         for i in range(len(self.pop)):
-            # print(i, self.pop[i], self.pop[i].fitness.values)
             datasetIndividuals = {
                 "Generations": geracaoAtual + 1,
                 "index": i,
@@ -321,3 +319,12 @@ class AlgEvolution:
                 "RCE": " - ",
             }
             self.allIndividualValuesArray.append(datasetIndividuals)
+
+    def cout(self, msg):
+        print(
+            "\n========================================================================================================="
+        )
+        print(msg)
+        print(
+            "==========================================================================================================\n"
+        )
