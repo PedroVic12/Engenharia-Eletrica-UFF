@@ -31,8 +31,20 @@ class DataExploration:
         df = pd.DataFrame(data)
         return df
 
-    def plot_diversidade_genes(self):
-        pass
+    def plot_diversidade_genes(self, population):
+        print("Plotando diversidade dos genes")
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+
+        x_values = [ind[0] for ind in population]  # Retorna a primeira posição do vetor
+        y_values = [ind[1] for ind in population]  # Retorna a segunda posição do vetor
+
+        ax.scatter(x_values, y_values, c="b", label="Population")
+        ax.set_title("Diversity of genes")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.legend()
+        plt.show()
 
     def displayDataFrameInfo(self, array, text):
         # Criar DataFrame com as melhores soluções
