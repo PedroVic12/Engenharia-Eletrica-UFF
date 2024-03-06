@@ -37,7 +37,7 @@ class DataExploration:
     def displayDataFrameInfo(self, array, text):
         # Criar DataFrame com as melhores soluções
         best_df = pd.DataFrame(array)
-        print(f"\n{text}\n")
+        self.cout(text)
         display(best_df)
         return best_df
 
@@ -136,6 +136,14 @@ class DataExploration:
         lns = line1 + line2 + line3
         labs = [l.get_label() for l in lns]
         ax1.legend(lns, labs, loc="upper right")
+
+    def plot_grafico_barras(self, x, y):
+        fig, ax = plt.subplots()
+        ax.bar(x, y, color="b")
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("Fitness")
+        ax.set_title("Fitness por Geração")
+        plt.show()
 
     def graficoBarrasFitnessGeneration(self, generation, lista, repopulation=False):
         fig, ax = plt.subplots()

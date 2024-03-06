@@ -44,7 +44,7 @@ class AlgEvolution:
 
         # All individuos gerados
         all_df = pd.DataFrame(self.allIndividualValuesArray)
-        print("TAMANHO ATUAL", all_df.shape[0])
+        print("TAMANHO ATUAL DE TODOS INDIVIDUOS", all_df.shape[0])
         self.add_best_individual_to_RCE(all_df)
 
         # Critério 1
@@ -68,9 +68,6 @@ class AlgEvolution:
         self.hof.update(self.pop)
         self.pop[0] = self.setup.toolbox.clone(self.hof[0])
 
-        # Coloca no conjunto elite o melhor da geração
-        # self.pop_RCE.append(self.hof[0])
-
     def add_best_individual_to_RCE(self, df):
         # Encontrar o índice da linha com o menor fitness
         index_min_fitness = df["Fitness"].idxmin()
@@ -78,11 +75,15 @@ class AlgEvolution:
         # Obter os valores da linha com o menor fitness
         best_individual_values = df.loc[[index_min_fitness]]
         best_individual_values["RCE"] == "SIM"
-        print("\n\nMelhor da geração:", best_individual_values["Generations"][:5])
+        print(
+            "\n\nMelhor da geração:",
+            str(best_individual_values["Generations"])[5:].strip(),
+        )
         display(best_individual_values)
 
         # Adicionar os valores ao array self.pop_RCE
         self.pop_RCE.append(best_individual_values.to_dict("records")[0])
+        print("Melhor da geração Adicionado no RCE!")
 
     def conjuntoElite(self, best_ind_1, delta=1):
         """Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes."""
@@ -172,18 +173,19 @@ class AlgEvolution:
             top_10_dict = top_10.to_dict("records")
             best_individuals.extend(top_10_dict)
 
-        # Retornar a lista de top 10 indivíduos de todas as gerações
-        _df = pd.DataFrame(best_individuals)
-        new_df_sorted = _df[_df["Generations"] == i].sort_values(
-            by=["Fitness"], ascending=False
-        )
-        if new_df_sorted.shape[0] > 0:
-            print("Total de individuos selecionados", new_df_sorted.shape[0])
-            display(new_df_sorted[:taxa])
-        else:
-            print("Nenhum individuo selecionado na geração atual")
+            # Retornar a lista de top 10 indivíduos de todas as gerações
+            _df = pd.DataFrame(best_individuals)
+            new_df_sorted = _df[_df["Generations"] == i].sort_values(
+                by=["Fitness"], ascending=False
+            )
+            if new_df_sorted.shape[0] > 0:
+                # print(                    f"Total de individuos selecionados da geração {i} ={new_df_sorted.shape[0]} ",                )
+                continue
+                # display(new_df_sorted[:taxa])
+            else:
+                # print("Nenhum individuo selecionado na geração atual")
+                continue
 
-        print("Total de individuos criterio 1", len(best_individuals))
         return best_individuals
 
     def repopulate_RCE(self, population, elite):
@@ -221,10 +223,14 @@ class AlgEvolution:
 
             # pegando as porcentagem
             elite = len(self.pop_RCE) * 0.2
+            elite = int(math.ceil(elite))
             random_population = len(self.pop) * 0.8
-            print(f"Taxa Candidatos elite = {elite} | random = {random_population}")
+            print(
+                f"Taxa Candidatos elite (20% de {len(self.pop_RCE)}) = {elite} | random (80% de {len(self.pop)})= {random_population}"
+            )
             print("\n\nCandidatos Conjunto Elite")
-            display(RCE_df[: int(math.ceil(elite))])
+            display(RCE_df[:elite])
+            # self.combinar_aleatoriamente()
 
         except Exception as e:
             print("Erro ao gerar novo conjunto elite", e)
@@ -313,7 +319,7 @@ class AlgEvolution:
                 "Generations": geracaoAtual + 1,
                 "index": i,
                 "Variaveis de Decisão": self.pop[i],
-                "Fitness": self.pop[i].fitness.values,
+                "Fitness": self.pop[i].fitness.values[0],
                 "Media": stats[0],
                 "Desvio Padrao": stats[1],
                 "RCE": " - ",
@@ -322,9 +328,36 @@ class AlgEvolution:
 
     def cout(self, msg):
         print(
-            "\n========================================================================================================="
+            "\n=========================================================================================================="
         )
-        print(msg)
+        print("\t", msg)
         print(
             "==========================================================================================================\n"
         )
+
+    def combinar_aleatoriamente(self):
+        elite_size = len(self.pop_RCE)
+        elite_df = pd.DataFrame(self.pop_RCE)
+
+        # Filtrar os indivíduos restantes da última geração
+        all_df = pd.DataFrame(self.allIndividualValuesArray)
+        remaining_individuals = all_df[
+            all_df["Generations"] == all_df["Generations"].max()
+        ]
+
+        # Remover os indivíduos do conjunto elite da lista dos restantes
+        remaining_individuals = remaining_individuals[
+            ~remaining_individuals.index.isin(elite_df.index)
+        ]
+
+        # Selecionar aleatoriamente os indivíduos restantes da última geração para preencher
+        random_individuals = remaining_individuals.sample(n=100 - elite_size)
+
+        # Adicionar a coluna "RCE" e definir como "SIM" para os indivíduos do conjunto elite e "NÃO" para os outros
+        elite_df["RCE"] = "SIM"
+        random_individuals["RCE"] = "NÃO"
+
+        # Combinar os indivíduos do conjunto elite com os indivíduos aleatórios
+        new_df = pd.concat([elite_df, random_individuals])
+        display(new_df)
+        return new_df
