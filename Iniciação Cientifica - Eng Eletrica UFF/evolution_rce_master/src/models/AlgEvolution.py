@@ -313,6 +313,75 @@ class AlgEvolution:
         # Retornar população final, logbook e elite
         return self.pop, self.logbook, self.hof[0]
 
+    # TODO
+    def run_evolution(
+        dataframe,
+        x_column,
+        y_column,
+        fitness_function,
+        ngen=50,
+        pop_size=100,
+        var_lower=0.0,
+        var_upper=2.0,
+    ):
+        # Definir o tamanho da população e o intervalo de valores para as variáveis de decisão
+        POP_SIZE = pop_size
+        VAR_LOWER = var_lower
+        VAR_UPPER = var_upper
+
+        # Criar tipos de indivíduo e de fitness para o algoritmo
+        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        creator.create("Individual", list, fitness=creator.FitnessMax)
+
+        # Inicializar a população e as ferramentas do algoritmo genético
+        toolbox = base.Toolbox()
+        toolbox.register("attr_float", random.uniform, VAR_LOWER, VAR_UPPER)
+        toolbox.register(
+            "individual", tools.initRepeat, creator.Individual, toolbox.attr_float, n=1
+        )
+        toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+        toolbox.register("evaluate", fitness_function)
+        toolbox.register("mate", tools.cxBlend, alpha=0.5)
+        toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.2, indpb=0.2)
+        toolbox.register("select", tools.selTournament, tournsize=3)
+
+        # Criar a população inicial
+        pop = toolbox.population(n=POP_SIZE)
+
+        # Executar o algoritmo evolutivo
+        for gen in range(ngen):
+            # Selecionar os indivíduos para reprodução
+            offspring = toolbox.select(pop, len(pop))
+            # Clonar os indivíduos selecionados
+            offspring = [toolbox.clone(ind) for ind in offspring]
+
+            # Aplicar crossover e mutação
+            for child1, child2 in zip(offspring[::2], offspring[1::2]):
+                if random.random() < 0.5:
+                    toolbox.mate(child1, child2)
+                    del child1.fitness.values
+                    del child2.fitness.values
+            for mutant in offspring:
+                if random.random() < 0.2:
+                    toolbox.mutate(mutant)
+                    del mutant.fitness.values
+
+            # Avaliar a aptidão dos novos indivíduos
+            invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+            fitnesses = map(toolbox.evaluate, invalid_ind)
+            for ind, fit in zip(invalid_ind, fitnesses):
+                ind.fitness.values = fit
+
+            # Substituir a população pela nova geração
+            pop[:] = offspring
+
+        # Selecionar o melhor indivíduo da população final
+        best_ind = tools.selBest(pop, 1)[0]
+
+        print("Melhor solução encontrada:", best_ind)
+
+        return best_ind
+
     def visualizarPopAtual(self, geracaoAtual, stats):
         for i in range(len(self.pop)):
             datasetIndividuals = {
