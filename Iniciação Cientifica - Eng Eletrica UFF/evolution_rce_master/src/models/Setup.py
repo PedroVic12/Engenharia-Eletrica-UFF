@@ -57,7 +57,19 @@ class Setup:
         self.toolbox.register("mate", tools.cxTwoPoint)
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
-        self.toolbox.register("evaluate", self.rastrigin)
+        self.toolbox.register("evaluate", self.evaluate_fitness)
+
+    def evaluate_fitness(self, individual):
+
+        if self.type == "minimaze":
+            result = minimize(self.rastrigin, x0=np.zeros(self.IND_SIZE), method="BFGS")
+            fitness_value = result.fun
+        elif self.type == "maximize":
+            result = minimize(
+                self.rastrigin, x0=np.zeros(self.IND_SIZE), method="Nelder-Mead"
+            )
+            fitness_value = -1 * result.fun
+        return fitness_value
 
     def gerarDataset(self, excel):
         df = pd.read_excel(excel)

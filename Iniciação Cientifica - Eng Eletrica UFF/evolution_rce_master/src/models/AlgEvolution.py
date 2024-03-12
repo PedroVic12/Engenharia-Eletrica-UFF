@@ -63,10 +63,22 @@ class AlgEvolution:
         new_population = self.repopulate_RCE(self.pop, elite_with_fitness)
         return new_population
 
-    def elitismoSimples(self, current_generation):
+    def elitismoSimples(self):
         # print("\nSimple Elitism being applied! in Generation:", current_generation + 1)
         self.hof.update(self.pop)
-        self.pop[0] = self.setup.toolbox.clone(self.hof[0])
+        best_individual = None
+
+        # Encontrar o melhor indivíduo do hall da fama com um fitness válido e maior que 0.0
+        for ind in self.hof:
+            if ind.fitness.valid and ind.fitness.values[0] != 0.0:
+                print("Melhor indivíduo encontrado!", ind.fitness.values[0])
+                best_individual = ind
+                break
+
+        # Verificar se o melhor indivíduo foi encontrado e se seu fitness não é (0, 0)
+        if best_individual is not None and best_individual.fitness.values != (0, 0):
+            # Atualizar o primeiro indivíduo da população com o melhor indivíduo encontrado
+            self.pop[0] = self.setup.toolbox.clone(best_individual)
 
     def add_best_individual_to_RCE(self, df):
         # Encontrar o índice da linha com o menor fitness
@@ -80,10 +92,15 @@ class AlgEvolution:
             str(best_individual_values["Generations"])[5:].strip(),
         )
         display(best_individual_values)
-
+        print(best_individual_values["Fitness"].values[0])
         # Adicionar os valores ao array self.pop_RCE
-        self.pop_RCE.append(best_individual_values.to_dict("records")[0])
-        print("Melhor da geração Adicionado no RCE!")
+        if not (
+            best_individual_values["Fitness"].values[0] == 0.0
+            or len(best_individual_values["Fitness"].values) == 0,
+        ):
+
+            self.pop_RCE.append(best_individual_values.to_dict("records")[0])
+            print("Melhor da geração Adicionado no RCE!")
 
     def conjuntoElite(self, best_ind_1, delta=1):
         """Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes."""
@@ -96,7 +113,9 @@ class AlgEvolution:
         for i in range(len(best_ind_1)):
             current_individual = best_ind_1[i]
             # print("\n---> Indivíduo atual:", current_individual["index"])
-
+            # Verificar se o fitness do indivíduo é zero
+            if current_individual["Fitness"] == 0.0:
+                continue
             # Loop sobre os outros indivíduos
             for j in range(i + 1, len(best_ind_1)):
                 other_individual = best_ind_1[j]
@@ -228,8 +247,8 @@ class AlgEvolution:
             print(
                 f"Taxa Candidatos elite (20% de {len(self.pop_RCE)}) = {elite} | random (80% de {len(self.pop)})= {random_population}"
             )
-            print("\n\nCandidatos Conjunto Elite")
-            display(RCE_df[:elite])
+            # print("\n\nCandidatos Conjunto Elite")
+            # TODO display(RCE_df[:elite])
             # self.combinar_aleatoriamente()
 
         except Exception as e:
@@ -313,14 +332,23 @@ class AlgEvolution:
                 "Media": avg_fitness_per_generation,
                 "Desvio Padrao": std_deviation,
             }
-            self.best_individual_array.append(self.data)
+
+            if (
+                self.data["Best Fitness"] == -0.0
+                or self.data["Best Fitness"] == set()
+                or self.data["Best Fitness"] == 0.0
+            ):
+
+                continue
+            else:
+                self.best_individual_array.append(self.data)
 
             self.visualizarPopAtual(
                 current_generation, [avg_fitness_per_generation, std_deviation]
             )
 
             # Aplicar repopulação e elitismo
-            self.elitismoSimples(current_generation)
+            self.elitismoSimples()
 
             if RCE and (
                 self.setup.num_repopulation != 0
@@ -366,28 +394,31 @@ class AlgEvolution:
         )
 
     def combinar_aleatoriamente(self):
-        elite_size = len(self.pop_RCE)
-        elite_df = pd.DataFrame(self.pop_RCE)
+        try:
+            elite_size = len(self.pop_RCE)
+            elite_df = pd.DataFrame(self.pop_RCE)
 
-        # Filtrar os indivíduos restantes da última geração
-        all_df = pd.DataFrame(self.allIndividualValuesArray)
-        remaining_individuals = all_df[
-            all_df["Generations"] == all_df["Generations"].max()
-        ]
+            # Filtrar os indivíduos restantes da última geração
+            all_df = pd.DataFrame(self.allIndividualValuesArray)
+            remaining_individuals = all_df[
+                all_df["Generations"] == all_df["Generations"].max()
+            ]
 
-        # Remover os indivíduos do conjunto elite da lista dos restantes
-        remaining_individuals = remaining_individuals[
-            ~remaining_individuals.index.isin(elite_df.index)
-        ]
+            # Remover os indivíduos do conjunto elite da lista dos restantes
+            remaining_individuals = remaining_individuals[
+                ~remaining_individuals.index.isin(elite_df.index)
+            ]
 
-        # Selecionar aleatoriamente os indivíduos restantes da última geração para preencher
-        random_individuals = remaining_individuals.sample(n=100 - elite_size)
+            # Selecionar aleatoriamente os indivíduos restantes da última geração para preencher
+            random_individuals = remaining_individuals.sample(n=100 - elite_size)
 
-        # Adicionar a coluna "RCE" e definir como "SIM" para os indivíduos do conjunto elite e "NÃO" para os outros
-        elite_df["RCE"] = "SIM"
-        random_individuals["RCE"] = "NÃO"
+            # Adicionar a coluna "RCE" e definir como "SIM" para os indivíduos do conjunto elite e "NÃO" para os outros
+            elite_df["RCE"] = "SIM"
+            random_individuals["RCE"] = "NÃO"
 
-        # Combinar os indivíduos do conjunto elite com os indivíduos aleatórios
-        new_df = pd.concat([elite_df, random_individuals])
-        display(new_df)
-        return new_df
+            # Combinar os indivíduos do conjunto elite com os indivíduos aleatórios
+            new_df = pd.concat([elite_df, random_individuals])
+            display(new_df)
+            return new_df
+        except Exception as e:
+            print("Erro ao combinar aleatoriamente", e)

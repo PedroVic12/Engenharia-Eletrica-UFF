@@ -46,10 +46,7 @@ class DataExploration:
         ax.legend()
         plt.show()
 
-    def plot_scatter_turbina(
-        self,
-        turbina,
-    ):
+    def plot_scatter_turbina(self, turbina, best_variables):
         # Plotar o gráfico de dispersão
         plt.figure(figsize=(10, 6))
 
@@ -61,10 +58,11 @@ class DataExploration:
         )
         plt.plot(
             turbina["Curva_Teórica(KWh)"],
-            turbina["Curva_Teórica(KWh)"],
+            best_variables * turbina["Curva_Teórica(KWh)"],
             label="Melhor Solução",
             color="red",
         )
+
         plt.xlabel("Potência Teórica (KWh)")
         plt.ylabel("Potência Ativa (kW)")
         plt.title("Comparação entre Potência Teórica e Potência Ativa")
@@ -109,9 +107,15 @@ class DataExploration:
         print(msg)
         print("=================================================================")
 
-    def visualize(self, logbook, pop, repopulation=False):
+    def visualize(self, logbook, pop, problem_type="minimaze", repopulation=False):
         generation = logbook.select("gen")
         statics = self.calculate_stats(logbook)
+
+        if problem_type == "maximize":
+            # Se o problema for de maximização, inverter os valores de fitness para exibir corretamente o gráfico
+            statics = {
+                key: [-value for value in values] for key, values in statics.items()
+            }
 
         if repopulation:
             best_solution_index = statics["min_fitness"].index(
