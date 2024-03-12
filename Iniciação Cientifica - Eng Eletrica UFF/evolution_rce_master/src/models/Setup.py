@@ -12,9 +12,9 @@ import pandas as pd
 class Setup:
     def __init__(self, params):
         self.params = params
-        self.CXPB = params["CXPB"]
-        self.MUTPB = params["MUTPB"]
-        self.NGEN = params["NGEN"]
+        self.CXPB = params["CROSSOVER"]
+        self.MUTPB = params["MUTACAO"]
+        self.NGEN = params["NUM_GENERATIONS"]
         self.POP_SIZE = params["POP_SIZE"]
         self.IND_SIZE = params["IND_SIZE"]
         self.CROSSOVER, self.MUTACAO, self.NUM_GENES, self.POPULATION_SIZE = (
@@ -23,6 +23,15 @@ class Setup:
             100,
             100,
         )
+        self.type = params["type"].lower()
+        if self.type == "maximize":
+            print("Método escolhido: Maximizar")
+            creator.create("Fitness", base.Fitness, weights=(1.0,))
+        else:
+            print("Método escolhido: Minimizar")
+            creator.create("Fitness", base.Fitness, weights=(-1.0,))
+
+        creator.create("Individual", list, fitness=creator.Fitness)
         self.SIZE_INDIVIDUAL = 10
         self.evaluations = 0
         self.num_repopulation = int(self.NUM_GENES * 0.20)
@@ -48,7 +57,7 @@ class Setup:
         self.toolbox.register("mate", tools.cxTwoPoint)
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
-        self.toolbox.register("evaluate", self.evaluate)
+        self.toolbox.register("evaluate", self.rastrigin)
 
     def gerarDataset(self, excel):
         df = pd.read_excel(excel)
@@ -63,10 +72,19 @@ class Setup:
             "NUM_REPOPULATION": self.num_repopulation,
         }
 
-    def evaluate(self, individual):
+    def rastrigin(self, individual):
         self.evaluations += 1
         rastrigin = 10 * self.SIZE_INDIVIDUAL
         for i in range(self.SIZE_INDIVIDUAL):
+            rastrigin += individual[i] * individual[i] - 10 * (
+                math.cos(2 * np.pi * individual[i])
+            )
+        return rastrigin
+
+    def rastrigin_decisionVariables(self, individual, decision_variables):
+        self.evaluations += 1
+        rastrigin = 10 * len(decision_variables)
+        for i in range(len(decision_variables)):
             rastrigin += individual[i] * individual[i] - 10 * (
                 math.cos(2 * np.pi * individual[i])
             )
@@ -80,7 +98,7 @@ class Setup:
 
         try:
             rastrigin_result = minimize(
-                self.evaluate, x0=np.zeros(n_dimensions), method="BFGS"
+                self.rastrigin, x0=np.zeros(n_dimensions), method="BFGS"
             )
             rastrigin_minimum = rastrigin_result.fun
             rastrigin_solution = rastrigin_result.x

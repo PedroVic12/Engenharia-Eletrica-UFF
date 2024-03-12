@@ -2,40 +2,15 @@ import numpy as np
 import math
 from deap import base, creator, tools
 import random
-import matplotlib.pyplot as plt
-import time
-from scipy.optimize import minimize
-import json
 import pandas as pd
 
+from AlgEvolution import AlgEvolution
 
-class AlgEvolution:
+
+class RunEvolutionRCE(AlgEvolution):
     def __init__(self, setup):
-        self.setup = setup
-        self.stats = tools.Statistics(key=lambda ind: ind.fitness.values)
-        self.stats.register("avg", np.mean)
-        self.stats.register("std", np.std)
-        self.stats.register("min", np.min)
-        self.stats.register("max", np.max)
+        super().__init__(setup)
 
-        self.logbook = tools.Logbook()
-        self.hof = tools.HallOfFame(1)
-        self.pop = self.setup.toolbox.population(n=self.setup.POP_SIZE)
-        self.pop_RCE = []
-        self.hof.update(self.pop)
-
-        self.best_solutions_array = []
-        self.best_individual_array = []
-        self.fitness_array = []
-        self.CONJUNTO_ELITE_ARRAY = []
-        self.allIndividualValuesArray = []
-        self.data = {}
-        self.repopulation_counter = 0
-        self.allFitnessValues = {}
-        self.validateCounter = 0
-        self.CONJUNTO_ELITE_RCE = set()
-
-    #!RCE
     def apply_RCE(self, population):
         """Aplicar o critério de repopulação com elitismo (RCE)"""
 
@@ -62,28 +37,6 @@ class AlgEvolution:
         ]
         new_population = self.repopulate_RCE(self.pop, elite_with_fitness)
         return new_population
-
-    def elitismoSimples(self, current_generation):
-        # print("\nSimple Elitism being applied! in Generation:", current_generation + 1)
-        self.hof.update(self.pop)
-        self.pop[0] = self.setup.toolbox.clone(self.hof[0])
-
-    def add_best_individual_to_RCE(self, df):
-        # Encontrar o índice da linha com o menor fitness
-        index_min_fitness = df["Fitness"].idxmin()
-
-        # Obter os valores da linha com o menor fitness
-        best_individual_values = df.loc[[index_min_fitness]]
-        best_individual_values["RCE"] == "SIM"
-        print(
-            "\n\nMelhor da geração:",
-            str(best_individual_values["Generations"])[5:].strip(),
-        )
-        display(best_individual_values)
-
-        # Adicionar os valores ao array self.pop_RCE
-        self.pop_RCE.append(best_individual_values.to_dict("records")[0])
-        print("Melhor da geração Adicionado no RCE!")
 
     def conjuntoElite(self, best_ind_1, delta=1):
         """Comparar as variáveis de decisão de cada indivíduo e verificar se existem 3 diferentes."""
@@ -144,84 +97,58 @@ class AlgEvolution:
         else:
             print("Nenhum indivíduo atende aos critérios.")
 
-    def addBestIndividualOfGenerationToRCE(self):
-        # Adicionar o melhor indivíduo da população atual ao conjunto elite
-        best_current_ind = self.pop[
-            self.pop.index(self.hof[0])
-        ]  # Melhor indivíduo da população atual
-        print("Best Current Individuo", best_current_ind.fitness.values[0], "\n")
-        if best_current_ind not in self.pop_RCE:
-            self.pop_RCE.append(best_current_ind)
+    def add_best_individual_to_RCE(self, df):
+        # Encontrar o índice da linha com o menor fitness
+        index_min_fitness = df["Fitness"].idxmin()
+
+        # Obter os valores da linha com o menor fitness
+        best_individual_values = df.loc[[index_min_fitness]]
+        best_individual_values["RCE"] == "SIM"
+        print(
+            "\n\nMelhor da geração:",
+            str(best_individual_values["Generations"])[5:].strip(),
+        )
+        display(best_individual_values)
+
+        # Adicionar os valores ao array self.pop_RCE
+        self.pop_RCE.append(best_individual_values.to_dict("records")[0])
+        print("Melhor da geração Adicionado no RCE!")
 
     def select_best_elitismo_RCE(self, df, k=0.3):
-        """Seleciona 30% dos melhores indivíduos de cada geração."""
         self.cout(f"CRITÉRIO 1 RCE - 30% dos melhores fitness de cada geração")
-
-        # Fatiando o dataframe para obter os 30% melhores indivíduos de cada geração
         taxa = int(self.setup.POP_SIZE * k)
         best_individuals = []
         for i in range(1, self.setup.NGEN):
-
-            # Ordenar os dados pela coluna "Fitness" em ordem decrescente
             df_sorted = df[df["Generations"] == i].sort_values(
                 by=["Fitness"], ascending=False
             )
-
             top_10 = df_sorted[:taxa]
-
-            # Converter os top 10 indivíduos para um dicionário e adicionar à lista
             top_10_dict = top_10.to_dict("records")
             best_individuals.extend(top_10_dict)
-
-            # Retornar a lista de top 10 indivíduos de todas as gerações
             _df = pd.DataFrame(best_individuals)
             new_df_sorted = _df[_df["Generations"] == i].sort_values(
                 by=["Fitness"], ascending=False
             )
             if new_df_sorted.shape[0] > 0:
-                # print(                    f"Total de individuos selecionados da geração {i} ={new_df_sorted.shape[0]} ",                )
                 continue
-                # display(new_df_sorted[:taxa])
             else:
-                # print("Nenhum individuo selecionado na geração atual")
                 continue
-
         return best_individuals
 
     def repopulate_RCE(self, population, elite):
-        """Realiza a repopulação substituindo parte da população pelo conjunto elite."""
         new_population = elite[:]
         remaining = len(population) - len(elite)
         new_population.extend(random.choices(population, k=remaining))
-
-        # Avaliar o fitness dos novos indivíduos
         fitnesses = map(self.setup.toolbox.evaluate, new_population)
         for ind, fit in zip(new_population, fitnesses):
             ind.fitness.values = [fit]
-
-        # Atualizar o hall da fama com os melhores indivíduos da nova população
         self.hof.update(new_population)
+        return new_population
 
-    def compareIndividual(self, delta=3):
-        """Comparar as 5 variaveis de decisao de de cada inviduo e verfiicar se tem 3 diferentes."""
-
-        # checar valores iguais
-
-        # comparar individuos
-        for i in range(0, len(self.CONJUNTO_ELITE_ARRAY)):
-            for j in range(i + 1, len(self.CONJUNTO_ELITE_ARRAY)):
-                result = self.pop[i] > self.pop[i]
-                if result <= delta:
-                    self.CONJUNTO_ELITE_ARRAY.append(self.pop[i]["variables"][i][j])
-
-    def generateConjuntoEliteWithRandomPopulation(
-        self,
-    ):
+    def generateConjuntoEliteWithRandomPopulation(self):
         self.cout("CRITERIO 3 - CONJUNTO ELITE (20%) com o restante aleatorio(80%)")
         try:
             RCE_df = pd.DataFrame(self.pop_RCE)
-
-            # pegando as porcentagem
             elite = len(self.pop_RCE) * 0.2
             elite = int(math.ceil(elite))
             random_population = len(self.pop) * 0.8
@@ -230,12 +157,9 @@ class AlgEvolution:
             )
             print("\n\nCandidatos Conjunto Elite")
             display(RCE_df[:elite])
-            # self.combinar_aleatoriamente()
-
         except Exception as e:
             print("Erro ao gerar novo conjunto elite", e)
 
-    #! Main LOOP
     def run(self, RCE=False, decision_variables=None, fitness_function=None):
         # Avaliar o fitness da população inicial
         fitnesses = map(self.setup.toolbox.evaluate, self.pop)
@@ -342,52 +266,3 @@ class AlgEvolution:
 
         # Retornar população final, logbook e elite
         return self.pop, self.logbook, self.hof[0]
-
-    def visualizarPopAtual(self, geracaoAtual, stats):
-        for i in range(len(self.pop)):
-            datasetIndividuals = {
-                "Generations": geracaoAtual + 1,
-                "index": i,
-                "Variaveis de Decisão": self.pop[i],
-                "Fitness": self.pop[i].fitness.values[0],
-                "Media": stats[0],
-                "Desvio Padrao": stats[1],
-                "RCE": " - ",
-            }
-            self.allIndividualValuesArray.append(datasetIndividuals)
-
-    def cout(self, msg):
-        print(
-            "\n=========================================================================================================="
-        )
-        print("\t", msg)
-        print(
-            "==========================================================================================================\n"
-        )
-
-    def combinar_aleatoriamente(self):
-        elite_size = len(self.pop_RCE)
-        elite_df = pd.DataFrame(self.pop_RCE)
-
-        # Filtrar os indivíduos restantes da última geração
-        all_df = pd.DataFrame(self.allIndividualValuesArray)
-        remaining_individuals = all_df[
-            all_df["Generations"] == all_df["Generations"].max()
-        ]
-
-        # Remover os indivíduos do conjunto elite da lista dos restantes
-        remaining_individuals = remaining_individuals[
-            ~remaining_individuals.index.isin(elite_df.index)
-        ]
-
-        # Selecionar aleatoriamente os indivíduos restantes da última geração para preencher
-        random_individuals = remaining_individuals.sample(n=100 - elite_size)
-
-        # Adicionar a coluna "RCE" e definir como "SIM" para os indivíduos do conjunto elite e "NÃO" para os outros
-        elite_df["RCE"] = "SIM"
-        random_individuals["RCE"] = "NÃO"
-
-        # Combinar os indivíduos do conjunto elite com os indivíduos aleatórios
-        new_df = pd.concat([elite_df, random_individuals])
-        display(new_df)
-        return new_df

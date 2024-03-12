@@ -46,6 +46,32 @@ class DataExploration:
         ax.legend()
         plt.show()
 
+    def plot_scatter_turbina(
+        self,
+        turbina,
+    ):
+        # Plotar o gráfico de dispersão
+        plt.figure(figsize=(10, 6))
+
+        plt.scatter(
+            turbina["Curva_Teórica(KWh)"],
+            turbina["ActivePower(kW)"],
+            label="Dados Reais",
+            color="blue",
+        )
+        plt.plot(
+            turbina["Curva_Teórica(KWh)"],
+            turbina["Curva_Teórica(KWh)"],
+            label="Melhor Solução",
+            color="red",
+        )
+        plt.xlabel("Potência Teórica (KWh)")
+        plt.ylabel("Potência Ativa (kW)")
+        plt.title("Comparação entre Potência Teórica e Potência Ativa")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
     def displayDataFrameInfo(self, array, text):
         # Criar DataFrame com as melhores soluções
         best_df = pd.DataFrame(array)
