@@ -4,8 +4,7 @@
     "NUM_GENERATIONS": 100,
     "POP_SIZE": 100,
     "IND_SIZE": 10,
-    "evaluations": 0,
     "type": "minimaze",
     "funcao objetivo": "Rastrigin",
-    "num_genes": 5
+    "delta": 1
 }
