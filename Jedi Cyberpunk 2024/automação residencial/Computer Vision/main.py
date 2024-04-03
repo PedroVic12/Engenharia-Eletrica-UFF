@@ -27,7 +27,7 @@ def setup():
     cap = cv2.VideoCapture(0)
     cap.set(3, wCam)
     cap.set(4, hCam)
-    detector = htm.handDetector()
+    detector = htm.handDetector(max_hands = 1)
     return (
         cap,
         detector,
