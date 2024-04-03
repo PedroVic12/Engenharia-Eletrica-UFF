@@ -3,7 +3,8 @@ import numpy as np
 import hand_tracking_module as htm
 import time
 import pyautogui
-import autopy
+#import autopy
+import mediapipe as mp
 
 class IAModuleCV:
 	def __init__(self):
@@ -26,25 +27,27 @@ class IAModuleCV:
 	    cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
 
 
-	def movingMode(self,fingers, x1, y1, camera_arr,screen_arr):
+	def movingMode(self,fingers, x1, y1, camera_arr,screen_arr,frame):
 	    if fingers[1] == 1 and fingers[2] == 0:
 	        # 5. converter em coordenadas
-	        x3 = np.interp(x1, (0, camera_arr[0]), (0, screen_arr[0]))
-	        y3 = np.interp(y1, (0, camera_arr[1]), (0, screen_arr[1]))
-
-
+	        x3 = np.interp(x1, (frame, camera_arr[0] - frame), (0, screen_arr[0]))
+	        y3 = np.interp(y1, (frame, camera_arr[1] - frame), (0, screen_arr[1]))
 	        print(f"Coordenadas = {x3} x {y3}")
+	        return x3,y3
 
-	        # 6 smothen values
+			#return x3, y3
 
-	        # 7 move mouse
-	        #pyautogui.move(x3, y3)
-	        autopy.mouse.move(screen_arr[0] - x3, y3)
 
+
+
+	def clickingMode(self,dedos,detector,img):
+		if dedos[1] == 1 and dedos[2] == 1:
+			tamanho,img, line_info = detector.findDistance(8,12,img)
+			return tamanho, line_info
 
 	def hands_mediaPipe(self):
 		mp_hands = mp.solutions.hands
-		hand = mp_hands.Hands()
+		hands = mp_hands.Hands()
 		return hands
 
 
