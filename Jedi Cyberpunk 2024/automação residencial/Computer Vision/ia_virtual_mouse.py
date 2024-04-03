@@ -65,18 +65,20 @@ def main_ia_virtualMouse():
         success, img = cap.read()
         img = detector.findHands(img)
         lmList, bbox = detector.findPosition(img)
+
+
         # 2. Get the tip of the index and middle fingers
         if len(lmList) != 0:
             x1, y1 = lmList[8][1:]
             x2, y2 = lmList[12][1:]
             # print(x1, y1, x2, y2)
 
-            # Check witch fingers
+            # Check witch fingers are up
             dedos = detector.fingersUp()
             print(dedos)
 
             # only finger index - moving mode
-            # movingMode(dedos)
+            #movingMode(dedos)
             if dedos[1] == 1 and dedos[2] == 0:
                 # 5. converter em coordenadas
                 x3 = np.interp(x1, (0, wCam), (0, wScr))

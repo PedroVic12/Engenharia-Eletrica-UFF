@@ -13,15 +13,18 @@ import numpy as np
 
 
 class handDetector:
-    def __init__(self, mode=False, maxHands=2, detectionCon=0.5, trackCon=0.5):
+    def __init__(self, mode=False, max_hands=2, detection_confidence=0.5, tracking_confidence=0.5):
         self.mode = mode
-        self.maxHands = maxHands
-        self.detectionCon = detectionCon
-        self.trackCon = trackCon
+        self.max_hands = max_hands
+        self.detection_confidence = detection_confidence
+        self.tracking_confidence = tracking_confidence
 
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(
-            self.mode, self.maxHands, self.detectionCon, self.trackCon
+            static_image_mode=False,
+            max_num_hands=self.max_hands,
+            min_detection_confidence=self.detection_confidence,
+            min_tracking_confidence=self.tracking_confidence
         )
         self.mpDraw = mp.solutions.drawing_utils
         self.tipIds = [4, 8, 12, 16, 20]
@@ -71,21 +74,19 @@ class handDetector:
 
     def fingersUp(self):
         fingers = []
-        # Thumb
-        if self.lmList[self.tipIds[0]][1] > self.lmList[self.tipIds[0] - 1][1]:
-            fingers.append(1)
-        else:
-            fingers.append(0)
-
-        # Fingers
-        for id in range(1, 5):
-
-            if self.lmList[self.tipIds[id]][2] < self.lmList[self.tipIds[id] - 2][2]:
+        if len(self.lmList) > 0:
+            # Thumb
+            if self.lmList[self.tipIds[0]][1] > self.lmList[self.tipIds[0] - 1][1]:
                 fingers.append(1)
             else:
                 fingers.append(0)
 
-        # totalFingers = fingers.count(1)
+            # Fingers
+            for id in range(1, 5):
+                if self.lmList[self.tipIds[id]][2] < self.lmList[self.tipIds[id] - 2][2]:
+                    fingers.append(1)
+                else:
+                    fingers.append(0)
 
         return fingers
 
