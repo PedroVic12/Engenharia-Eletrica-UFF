@@ -1,6 +1,7 @@
 import easygui
 import sympy as sp
 import scipy
+from IPython import display
 
 
 class Calculator:
@@ -25,11 +26,9 @@ class Calculator:
         except Exception as e:
             return None, f"Erro ao converter para símbolos: {e}"
 
-    def integrate(self, expression, variable):
+    def integrate(self, expr, var):
         try:
-            expr = self.convert_to_symbol(expression)
             if expr:
-                var = sp.symbols(variable)
                 integral = sp.integrate(expr, var)
                 return integral
             else:
@@ -39,10 +38,9 @@ class Calculator:
 
     def differentiate(self, expr, variable):
         try:
-            # expr = self.convert_to_symbol(expression)
             if expr:
-                # var = sp.symbols(variable)
                 derivative = sp.diff(expr, variable)
+                print(f"Derivada entre de {expr} em {variable}")
                 return derivative
             else:
                 return None, "Expressão inválida"
@@ -55,7 +53,8 @@ class MatrixCalculator:
         self.calculadora = Calculator()
 
     def produto_vetorial(self, u, v):
-        return f"produto vetorial entre {u} x {v} = {u.dot(v)}"
+        print(f"produto vetorial entre {u} x {v}")
+        return u.dot(v)
 
     def cross(self, u, v):
         u.cross(v)
