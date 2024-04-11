@@ -3,8 +3,8 @@
     "MUTACAO": 0.05,
     "NUM_GENERATIONS": 100,
     "POP_SIZE": 100,
-    "IND_SIZE": 10,
+    "IND_SIZE": 5,
     "type": "minimaze",
     "funcao objetivo": "Rastrigin",
-    "delta": 1
+    "delta": 5
 }
