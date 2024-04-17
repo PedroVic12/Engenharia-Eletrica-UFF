@@ -6,5 +6,8 @@
     "IND_SIZE": 10,
     "type": "minimaze",
     "funcao objetivo": "Rastrigin",
-    "delta": 5
+    "RCE_REPOPULATION_GENERATIONS": 0.20,
+    "delta": 5,
+    "K": 30,
+    "PORCENTAGEM": 0.30
 }
