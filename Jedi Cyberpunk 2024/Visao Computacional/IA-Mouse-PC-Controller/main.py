@@ -17,17 +17,18 @@ pTime = 0
 plocX, plocY = 0, 0
 clocX, clocY = 0, 0
 wScr, hScr = pyautogui.size()
-print(wScr,hScr)
+print(wScr, hScr)
 #########################
 
-pyautogui.FAILSAFE = False
+# pyautogui.FAILSAFE = False
+
 
 def setup():
 
     cap = cv2.VideoCapture(0)
     cap.set(3, wCam)
     cap.set(4, hCam)
-    detector = htm.handDetector(max_hands =1)
+    detector = htm.handDetector(max_hands=1)
     return (
         cap,
         detector,
@@ -53,8 +54,8 @@ def main_ia_virtualMouse():
         success, img = cap.read()
         img = detector.findHands(img)
         lmList, bbox = detector.findPosition(img)
-        RBG_frame = cv2.cvtColor(img,  cv2.COLOR_BGR2RGB)
-        #showLandMakers(RBG_frame)
+        RBG_frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # showLandMakers(RBG_frame)
 
         # 2. Get the tip of the index and middle fingers
         if len(lmList) != 0:
@@ -65,21 +66,23 @@ def main_ia_virtualMouse():
             dedos = detector.fingersUp()
             print(dedos)
 
+            # 4),5,6
+            ia_module.desenhaRetangulo(
+                img, (frameR, frameR), (wCam - frameR, hCam - frameR)
+            )
+            try:
 
-            #4),5,6
-            ia_module.desenhaRetangulo(img,(frameR,frameR), (wCam-frameR,hCam-frameR))
-            try:  
+                x3, y3 = ia_module.movingMode(
+                    dedos, x1, y1, [wCam, hCam], [wScr, hScr], frameR
+                )
 
-                x3,y3 = ia_module.movingMode(dedos,x1,y1,[wCam,hCam],[wScr,hScr],frameR)
-
-            # 7 move mouse
-            #ia_module.moverMouseSuave(clocX,clocY,plocX,plocY,smoothening,x3,y3)
+                # 7 move mouse
+                # ia_module.moverMouseSuave(clocX,clocY,plocX,plocY,smoothening,x3,y3)
                 clocX = plocX + (x3 - plocX) / smoothening
                 clocY = plocY + (y3 - plocY) / smoothening
 
                 pyautogui.move(wScr - clocX, clocY)
-                plocX,plocY = clocX, clocY
-
+                plocX, plocY = clocX, clocY
 
                 if x3 and y3:
                     print("movendo normal")
@@ -87,34 +90,34 @@ def main_ia_virtualMouse():
 
             except:
                 print("Erro ao tentar mover")
-            #autopy.mouse.move(screen_arr[0] - x3, y3)
+            # autopy.mouse.move(screen_arr[0] - x3, y3)
 
-            ia_module.desenhaCirculo(img,x1,y1)
+            ia_module.desenhaCirculo(img, x1, y1)
 
-
-            #8) both index and middle finger -> clicking mode
+            # 8) both index and middle finger -> clicking mode
             try:
-                tamanho, line_info = ia_module.clickingMode(dedos,detector,img)
+                tamanho, line_info = ia_module.clickingMode(dedos, detector, img)
                 # 9 find distance between fingers
                 print(tamanho)
                 if tamanho < 40:
                     # 10 click mouse if distance short
-                    ia_module.desenhaCirculo(img,line_info[4],line_info[5])
+                    ia_module.desenhaCirculo(img, line_info[4], line_info[5])
                     pyautogui.click()
                 else:
                     print("valor vazio")
             except:
                 print("Erro ao clicar")
 
-
-
             # 11 frame rate
             cTime = time.time()
             fps = 1 / (cTime - pTime)
-            #pTime = cTime
-            cv2.putText(img,str(int(fps)), (20,50), cv2.FONT_HERSHEY_PLAIN, 3,255,0,0,3)
+            # pTime = cTime
+            cv2.putText(
+                img, str(int(fps)), (20, 50), cv2.FONT_HERSHEY_PLAIN, 3, 255, 0, 0, 3
+            )
 
         # 12 display
         ia_module.showCV(img)
+
 
 main_ia_virtualMouse()

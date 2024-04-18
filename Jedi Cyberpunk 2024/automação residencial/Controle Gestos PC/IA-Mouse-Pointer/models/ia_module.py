@@ -5,12 +5,12 @@ import time
 import pyautogui
 
 class IAModuleCV:
-	def __init__:
+	def __init__(self):
 		pass
 
 	def showCV(img):
-    cv2.imshow("Tela", img)
-    cv2.waitKey(1)
+		cv2.imshow("Tela", img)
+		cv2.waitKey(1)
 
 
 	def displayText(self,text):

@@ -7,7 +7,7 @@ import PoseModule as pm
 cap = cv2.VideoCapture(
     "/home/pedrov/Documentos/GitHub/Camorim-Getx-App/camorim_getx_app/lib/Python-Code-ML/Computer-Vision/IA-personal-trainer/videos/curl1.gif"
 )
-
+# cap = cv2.VideoCapture(0)
 detector = pm.poseDetector()
 print(cap)
 
