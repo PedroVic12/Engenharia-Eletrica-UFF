@@ -1,0 +1,1 @@
+ /home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno\ Virtual\ -\ Estudos\ e\ Conhecimento/Sistemas\ Embarcados\ e\ IoT/Calistenia\ APP/calistenia_app/.dart_tool/flutter_build/03c6bab7303db183806530efe87ed0cc/native_assets.yaml: 

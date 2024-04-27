@@ -1,0 +1,14 @@
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/CMakeFiles/calistenia_app.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/CMakeFiles/edit_cache.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/CMakeFiles/rebuild_cache.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/CMakeFiles/list_install_components.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/CMakeFiles/install.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/CMakeFiles/install/local.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/CMakeFiles/install/strip.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/flutter/CMakeFiles/flutter_assemble.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/flutter/CMakeFiles/edit_cache.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/flutter/CMakeFiles/rebuild_cache.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/flutter/CMakeFiles/list_install_components.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/flutter/CMakeFiles/install.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/flutter/CMakeFiles/install/local.dir
+/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Caderno Virtual - Estudos e Conhecimento/Sistemas Embarcados e IoT/Calistenia APP/calistenia_app/build/linux/x64/debug/flutter/CMakeFiles/install/strip.dir
