@@ -7,7 +7,6 @@
     "type": "minimaze",
     "funcao objetivo": "Rastrigin",
     "RCE_REPOPULATION_GENERATIONS": 0.20,
-    "delta": 5,
-    "K": 30,
+    "DELTA": 3,
     "PORCENTAGEM": 0.30
 }

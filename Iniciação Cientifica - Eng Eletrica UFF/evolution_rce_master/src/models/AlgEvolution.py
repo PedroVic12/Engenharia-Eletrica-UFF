@@ -22,9 +22,9 @@ class AlgoritimoEvolutivoRCE:
         self.hof = tools.HallOfFame(1)
         self.POPULATION = self.setup.toolbox.population(n=self.setup.POP_SIZE)
         self.hof.update(self.POPULATION)
-        self.POP_OPTIMIZATION = self.setup.toolbox.FrameworkPopulation(
-            n=self.setup.POP_SIZE
-        )
+
+        if self.setup.DADOS_ENTRADA:
+            self.POP_OPTIMIZATION = self.setup.toolbox.population(n=self.setup.POP_SIZE)
 
         self.pop_RCE = []
         self.best_solutions_array = []
@@ -170,84 +170,95 @@ class AlgoritimoEvolutivoRCE:
 
         return self.pop_RCE
 
-    def newCriterio(self, delta=6):
+    def newCriterio(self, population, delta):
+        self.cout(f"CRITÉRIO 2 RCE ")
         self.CONJUNTO_ELITE_RCE.clear()
-        lista = []
+        self.pop_RCE = []
 
-        def criterio1_reduzido(porcentagem=0.30):
-            best_ind = self.elitismoSimples(self.POPULATION)[0]
+        def criterio1_reduzido(porcentagem=0.40):
+            best_ind = self.elitismoSimples(population)[0]
             best_fitness = best_ind.fitness.values[0]
             max_difference = (1 + porcentagem) * best_fitness
-            return max_difference
+            return max_difference, best_ind
 
-        max_difference = criterio1_reduzido()
+        max_difference, best_ind = criterio1_reduzido()
+        self.pop_RCE.append(best_ind)
 
         # todo colocar hof no rce e ajustar parâmetros sim e nao
+        def calculaDiff(ind, lista, valor_limite):
+            count_ind = 0
 
-        def calculaDiff(ind, lista):
             for i in range(len(lista)):
-                diff = np.array(ind) - np.array(lista[i])
-                if sum(diff) > delta:
-                    print("Diferença = ", sum(diff))
+                diff = abs(np.array(ind) - np.array(lista[i]))
+                print("\nDiff = ", diff)
+                count = 0
+
+                for j in range(len(diff)):
+                    if diff[j] > delta:
+                        count += 1
+
+                    if count >= valor_limite:
+                        count_ind += 1
+                        break
+
+                    if j == len(diff) - 1:
+                        print("Não é diferente ")
+                        return False
+
+                if count_ind >= len(lista):
                     return True
                 else:
+                    # print("Nenhum indivíduo atende aos critérios. :( ")
                     return False
 
-        for ind in self.POPULATION:
+        for ind in population:
             # criterio 1
             if ind.fitness.values[0] <= max_difference:
-                if not lista:
-                    lista.append(ind)
-                else:
-                    # criterio 2
-                    diff = calculaDiff(ind, lista)
-                    if diff:
-                        if (ind not in self.pop_RCE) and (ind not in lista):
-                            lista.append(ind)
-                            self.pop_RCE.append(ind)
-                            self.CONJUNTO_ELITE_RCE.add(tuple(ind))
+                # criterio 2
+                diff = calculaDiff(ind, self.pop_RCE, 1)
+                if diff:
+                    if ind not in self.pop_RCE:
+                        self.pop_RCE.append(ind)
+                        self.CONJUNTO_ELITE_RCE.add(tuple(ind))
 
-        if not self.pop_RCE:
-            print("Nenhum indivíduo atende aos critérios. :( ")
-
-        print("Tamanho Elite = ", len(lista))
         print("Tamanho Elite = ", len(self.pop_RCE))
         print("Tamanho Elite = ", len(self.CONJUNTO_ELITE_RCE))
 
         return self.pop_RCE
 
-    def aplicar_RCE(self, generation):
-        population = [self.POPULATION, self.POP_OPTIMIZATION]
-        self.pop_RCE = []
+    def aplicar_RCE(self, generation, current_population):
 
         #! a - Cria uma pop aleatória (eliminando a pop aleatória criada na execução anterior do RCE)
         new_pop = self.setup.toolbox.population(
             n=self.setup.POP_SIZE
-        )  # retorna uma lista de individuos de var de decisão
+        )  # retorna uma pop com lista de individuos de var de decisão
 
         # Avaliar o fitness da população atual
-        self.avaliarFitnessIndividuos(self.POPULATION)
-        self.calculateFitnessGeneration(self.POPULATION)
+        self.avaliarFitnessIndividuos(current_population)
+        self.calculateFitnessGeneration(current_population)
 
         #! b - Coloca o elite hof da pop anterior  no topo (0)
-        pop = self.elitismoSimples(self.POPULATION)
+        pop = self.elitismoSimples(current_population)
         print(
             f"Elitismo HOF Index[{pop[0].index}] {pop[0]} \n Fitness = {pop[0].fitness.values} | Diversidade = {sum(pop[0])}"
         )  # pop[0] é o melhor individuo HOF
         new_pop[0] = self.setup.toolbox.clone(pop[0])
 
         #! critério 1 e obtém os N melhores com 30% do valor do melhor fitness
-        ind_selecionados = self.criterio1(self.POPULATION, 0.30, k=30)
+        # ind_selecionados = self.criterio1(self.POPULATION, 0.30, k=30)
 
         #! Critério 2 usando este array e vai colocando os indivíduos selecionados pelo critério 2 na pop aleatória (passo a)
         # ind_diferentes_var = self.criterio2_alternative(ind_selecionados, delta=7)
-        ind_diferentes_var = self.newCriterio(delta=7)
+        ind_diferentes_var = self.newCriterio(
+            current_population, delta=self.setup.delta
+        )
 
         # preenche a pop com os selecionados do criterio 2
         for i, ind in enumerate(ind_diferentes_var, start=0):
             new_pop[0].rce = "HOF"
-            new_pop[i] = self.setup.toolbox.clone(ind)
-            new_pop[i].rce = "SIM_2"
+            if i > 0:
+                new_pop[i] = self.setup.toolbox.clone(ind)
+                new_pop[i].rce = "SIM_2"
 
         #! Criterio 3 retorna pop aleatória modificada (com hof + rce + Aleatorio)
         self.calculateFitnessGeneration(new_pop)
@@ -346,12 +357,15 @@ class AlgoritimoEvolutivoRCE:
             self.setup.toolbox.register("evaluate", fitness_func)
 
     #! Main LOOP
-    def run(self, RCE=False, decision_variables=None, fitness_function=None):
+    def run(self, RCE=False, decision_variables=None, fitness_function=None, num_pop=0):
 
-        population = [self.POPULATION, self.POP_OPTIMIZATION]
+        if self.setup.DADOS_ENTRADA:
+            population = [self.POPULATION, self.POP_OPTIMIZATION]
+        else:
+            population = [self.POPULATION]
 
         # Avaliar o fitness da população inicial
-        self.avaliarFitnessIndividuos(self.POPULATION)
+        self.avaliarFitnessIndividuos(population[num_pop])
 
         # Selecionando as variaveis de decisao e afuncao objeti
         self.checkDecisionVariablesAndFitnessFunction(
@@ -363,7 +377,7 @@ class AlgoritimoEvolutivoRCE:
 
             # Selecionar os indivíduos para reprodução
             offspring = self.setup.toolbox.select(
-                self.POPULATION, k=len(self.POPULATION)
+                population[num_pop], k=len(population[num_pop])
             )
 
             # Clone the selected individuals
@@ -395,20 +409,22 @@ class AlgoritimoEvolutivoRCE:
                     f"RCE being applied! - Generation = {current_generation + 1} ",
                 )
                 #! f - copia pop aleatória modificada retornada para pop atual
-                new_population = self.aplicar_RCE(current_generation + 1)
-                print("\nPopulação gerada pelo RCE\n", new_population)
-                self.POPULATION[:] = new_population
+                new_population = self.aplicar_RCE(
+                    current_generation + 1, population[num_pop]
+                )
+                print("\nPopulação gerada pelo RCE\n", population[num_pop])
+                population[num_pop][:] = new_population
             else:
-                self.POPULATION[:] = offspring
+                population[num_pop][:] = offspring
 
             # Registrar estatísticas no logbook
-            self.elitismoSimples(self.POPULATION)
+            self.elitismoSimples(population[num_pop])
             self.registrarDados(current_generation)
-            record = self.stats.compile(self.POPULATION)
+            record = self.stats.compile(population[num_pop])
             self.logbook.record(gen=current_generation, **record)
 
         # Retornar população final, logbook e elite
-        return self.POPULATION, self.logbook, self.hof[0]
+        return population[num_pop], self.logbook, self.hof[0]
 
     def visualizarPopAtual(self, geracaoAtual, stats):
 

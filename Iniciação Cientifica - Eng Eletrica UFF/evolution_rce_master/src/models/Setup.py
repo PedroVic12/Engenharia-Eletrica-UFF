@@ -29,6 +29,8 @@ class Setup:
             self.POP_SIZE,
         )
 
+        self.delta = params["DELTA"]
+
         #! Parâmetros do algoritmo de Rastrigin
         self.evaluations = 0
         self.num_repopulation = int(self.NUM_GENERATIONS * self.TAXA_GENERATION)
@@ -67,33 +69,40 @@ class Setup:
         )
 
         #! individuos com dados de entrada
-        creator.create(
-            "FrameworkIndividual",
-            list,
-            fitness=creator.Fitness,
-            tipo=self.DADOS_ENTRADA[0],
-        )
-        self.toolbox.register(
-            "varDecision",
-            random.uniform,
-            self.DADOS_ENTRADA[2][0],
-            self.DADOS_ENTRADA[2][1],
-        )
-        self.toolbox.register(
-            "newIndividual",
-            tools.initRepeat,
-            creator.FrameworkIndividual,
-            self.toolbox.varDecision,
-            n=self.DADOS_ENTRADA[1],
-        )
+        if self.DADOS_ENTRADA:
+            creator.create(
+                "FrameworkIndividual",
+                list,
+                fitness=creator.FitnessMin,
+                tipo=self.DADOS_ENTRADA[0],
+                rce=str,
+            )
+            self.toolbox.register(
+                "varDecision",
+                random.uniform,
+                self.DADOS_ENTRADA[2][0],
+                self.DADOS_ENTRADA[2][1],
+            )
+            self.toolbox.register(
+                "newIndividual",
+                tools.initRepeat,
+                creator.FrameworkIndividual,
+                self.toolbox.varDecision,
+                n=self.DADOS_ENTRADA[1],
+            )
+
+            self.toolbox.register(
+                "FrameworkPopulation",
+                tools.initRepeat,
+                list,
+                self.toolbox.newIndividual,
+            )
 
         #! paramentos evolutivos
         self.toolbox.register(
             "population", tools.initRepeat, list, self.toolbox.individual
         )
-        self.toolbox.register(
-            "FrameworkPopulation", tools.initRepeat, list, self.toolbox.newIndividual
-        )
+
         self.toolbox.register("mate", tools.cxTwoPoint)
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
