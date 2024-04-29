@@ -13,6 +13,78 @@ class DataExploration:
     def __init__(self):
         self.fit_array = []
 
+    def default_rastrigin(self, x, y):
+        return 20 + x**2 + y**2 - 10 * (np.cos(2 * np.pi * x) + np.cos(2 * np.pi * y))
+
+    def generateSimpleDataset(self):
+        # Geração dos dados
+        data = pd.DataFrame(
+            {"x": np.linspace(-5, 5, 400), "y": np.linspace(-5, 5, 400)}
+        )
+
+        # display(data)
+
+        # Generate meshgrid data
+        x = np.linspace(-5.15, 5.15, 100)
+        y = np.linspace(-5.15, 5.15, 100)
+        X, Y = np.meshgrid(x, y)
+
+        # Calculate function values
+        # print(X.shape,Y.shape)
+
+        return X, Y
+
+    def plot_Rastrigin_2D(self, X, Y, Z_rastrigin, logbook, best_variables=[]):
+        fig = plt.figure(figsize=(18, 10))
+        ax1 = fig.add_subplot(231)
+        generation = logbook.select("gen")
+        statics = self.calculate_stats(logbook)
+        line1 = ax1.plot(
+            generation, statics["min_fitness"], "*b-", label="Minimum Fitness"
+        )
+        line2 = ax1.plot(
+            generation, statics["avg_fitness"], "+r-", label="Average Fitness"
+        )
+        line3 = ax1.plot(
+            generation, statics["max_fitness"], "og-", label="Maximum Fitness"
+        )
+        ax1.set_xlabel("Generation")
+        ax1.set_ylabel("Fitness")
+        ax1.set_title("GERAÇÃO X FITNESS")
+        lns = line1 + line2 + line3
+        labs = [l.get_label() for l in lns]
+        ax1.legend(lns, labs, loc="upper right")
+
+        # Rastrigin 2D
+        ax2 = fig.add_subplot(232)
+        ax2.contourf(X, Y, Z_rastrigin, levels=50, cmap="viridis")
+        # ax2.plot(best_variables, color='red',)
+        for num in range(len(best_variables)):
+            var_x = round(best_variables[num])
+            var_y = best_variables[num]
+            ax2.scatter(var_x, var_y, color="pink", marker="o", label="best variables")
+        ax2.set_title("Rastrigin Function 2D")
+        ax2.set_xlabel("X")
+        ax2.set_ylabel("Y")
+
+        # Rastrigin 3D
+        ax5 = fig.add_subplot(233, projection="3d")
+        ax5.plot_surface(X, Y, Z_rastrigin, cmap="viridis", edgecolor="none")
+        ax5.set_title("Rastrigin Function 3D")
+        ax5.set_xlabel("X")
+        ax5.set_ylabel("Y")
+        ax5.set_zlabel("Z")
+
+        plt.tight_layout()
+        plt.show()
+
+    def show_rastrigin_benchmark(self, logbook, best=[]):
+        X, Y = self.generateSimpleDataset()
+
+        Z_3D_rastrigin = self.default_rastrigin(X, Y)
+
+        self.plot_Rastrigin_2D(X, Y, Z_3D_rastrigin, logbook, best)
+
     def statistics_per_generation_df(self, logbook):
         generations = logbook.select("gen")
         min_fitness = logbook.select("min")
@@ -29,7 +101,7 @@ class DataExploration:
         }
 
         df = pd.DataFrame(data)
-        return df
+        display(df)
 
     def plot_diversidade_genes(self, population):
         print("Plotando diversidade dos genes")
@@ -77,6 +149,11 @@ class DataExploration:
         display(best_df)
         return best_df
 
+    def show_conjuntoElite(self, pop):
+        print("\n\n-->Conjunto Elite:", pop)
+        best_df = pd.DataFrame(pop)
+        display(best_df.sort_values(by="Fitness", ascending=False))
+
     def calculate_stats(self, logbook):
 
         fit_avg = logbook.select("avg")
@@ -103,11 +180,15 @@ class DataExploration:
         )
 
     def cout(self, msg):
-        print("=================================================================")
+        print(
+            "=========================================================================================="
+        )
         print(msg)
-        print("=================================================================")
+        print(
+            "=========================================================================================="
+        )
 
-    def visualize(self, logbook, pop, problem_type="minimaze", repopulation=False):
+    def visualize(self, logbook, pop, problem_type="minimaze", repopulation=True):
         generation = logbook.select("gen")
         statics = self.calculate_stats(logbook)
 
@@ -166,11 +247,7 @@ class DataExploration:
         else:
             ax1.set_title("Sem Repopulação")
 
-        if repopulation:
-            line1 = ax1.plot(gen, lista["min_fitness"], "*b-", label="Minimum Fitness")
-        else:
-            line1 = ax1.plot(gen, lista["min_fitness"], "*b-", label="Minimum Fitness")
-
+        line1 = ax1.plot(gen, lista["min_fitness"], "*b-", label="Minimum Fitness")
         line2 = ax1.plot(gen, lista["avg_fitness"], "+r-", label="Average Fitness")
         line3 = ax1.plot(gen, lista["max_fitness"], "og-", label="Maximum Fitness")
         ax1.set_xlabel("Generation")
@@ -198,9 +275,7 @@ class DataExploration:
             best_solutions = [min(lista["min_fitness"]) for i in range(len(generation))]
             avg_fitness = lista["avg_fitness"]
             generations = np.arange(1, len(generation) + 1)
-            print(len(generations), len(best_solutions), len(avg_fitness))
 
-            ax.bar(generations, best_solutions, color="b", label="Melhor Fitness")
             ax.plot(
                 generations,
                 avg_fitness,
@@ -209,44 +284,18 @@ class DataExploration:
                 linestyle="--",
                 label="Média Fitness por Geração",
             )
+            ax.bar(
+                generations,
+                lista["min_fitness"],
+                color="green",
+                label="Melhor Fitness por Geração",
+            )
 
             ax.set_xlabel("Geração")
             ax.set_ylabel("Fitness")
             ax.set_title("Melhor Fitness e Média por Geração")
             ax.legend()
             plt.show()
-
-    def plot_best_fitness_generation(self, best_solutions_array, repopulation=False):
-        generations = range(2, len(best_solutions_array) + 1)
-
-        # Filtrar listas vazias
-        best_fitness = [min(solution) for solution in best_solutions_array if solution]
-        avg_fitness = [
-            np.mean(solution) for solution in best_solutions_array if solution
-        ]
-
-        print(len(best_fitness), len(avg_fitness))
-
-        plt.figure()
-        plt.bar(generations, best_fitness, color="b", label="Melhor Fitness")
-        plt.plot(
-            generations,
-            avg_fitness,
-            color="r",
-            linestyle="--",
-            label="Média Fitness por Geração",
-        )
-
-        plt.xlabel("Geração")
-        plt.ylabel("Fitness")
-        plt.title("Melhor Fitness e Média por Geração")
-        plt.legend()
-        plt.grid(True)
-        if repopulation:
-            plt.title("Com Repopulação")
-        else:
-            plt.title("Sem Repopulação")
-        plt.show()
 
     def plot_diversidade(self, population, repopulation=False):
         fig = plt.figure()
