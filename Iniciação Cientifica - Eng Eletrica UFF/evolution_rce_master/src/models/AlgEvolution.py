@@ -7,6 +7,15 @@ import time
 from scipy.optimize import minimize
 import json
 import pandas as pd
+import numpy as np
+import math
+from deap import base, creator, tools
+import random
+import matplotlib.pyplot as plt
+import time
+from scipy.optimize import minimize
+import json
+import pandas as pd
 
 
 class AlgoritimoEvolutivoRCE:
@@ -175,51 +184,68 @@ class AlgoritimoEvolutivoRCE:
         self.CONJUNTO_ELITE_RCE.clear()
         self.pop_RCE = []
 
-        def criterio1_reduzido(porcentagem=0.40):
+        def criterio1_reduzido(population, porcentagem=0.40):
             best_ind = self.elitismoSimples(population)[0]
             best_fitness = best_ind.fitness.values[0]
             max_difference = (1 + porcentagem) * best_fitness
+            print(f"Fitness calculado com {porcentagem} = {round(max_difference)}")
             return max_difference, best_ind
 
-        max_difference, best_ind = criterio1_reduzido()
+        max_difference, best_ind = criterio1_reduzido(population)
         self.pop_RCE.append(best_ind)
 
         # todo colocar hof no rce e ajustar parâmetros sim e nao
         def calculaDiff(ind, lista, valor_limite):
             count_ind = 0
+            count = 0
+
+            # print("Lista criterio 1:",lista)
 
             for i in range(len(lista)):
                 diff = abs(np.array(ind) - np.array(lista[i]))
-                print("\nDiff = ", diff)
-                count = 0
 
-                for j in range(len(diff)):
-                    if diff[j] > delta:
-                        count += 1
+                if sum(diff) > 0.0:
+                    print("\n Soma Diff = ", sum(diff))
+                    print("array ind selecionados: ", list(diff))
+                    array = list(diff)
 
-                    if count >= valor_limite:
-                        count_ind += 1
-                        break
+                    for j in range(len(array)):
+                        print("debug", array[j], delta)
+                        print("contador = ", count)
 
-                    if j == len(diff) - 1:
-                        print("Não é diferente ")
+                        if array[j] > delta:
+                            count += 1
+
+                        if count >= valor_limite:
+                            count_ind += 1
+                            # break
+
+                        if j == len(lista) - 1:
+                            print("Não é diferente ")
+                            # return False
+                            break
+
+                    if len(array) >= valor_limite:
+                        # if count_ind >= len(array):
+                        return True
+                    else:
                         return False
 
-                if count_ind >= len(lista):
-                    return True
                 else:
-                    # print("Nenhum indivíduo atende aos critérios. :( ")
                     return False
 
         for ind in population:
             # criterio 1
             if ind.fitness.values[0] <= max_difference:
                 # criterio 2
-                diff = calculaDiff(ind, self.pop_RCE, 1)
+                diff = calculaDiff(ind, self.pop_RCE, 2)
                 if diff:
                     if ind not in self.pop_RCE:
                         self.pop_RCE.append(ind)
                         self.CONJUNTO_ELITE_RCE.add(tuple(ind))
+
+        if len(self.pop_RCE) == 1:
+            print("Nenhum indivíduo atende aos critérios. :( ")
 
         print("Tamanho Elite = ", len(self.pop_RCE))
         print("Tamanho Elite = ", len(self.CONJUNTO_ELITE_RCE))
@@ -253,12 +279,12 @@ class AlgoritimoEvolutivoRCE:
             current_population, delta=self.setup.delta
         )
 
-        # preenche a pop com os selecionados do criterio 2
+        # cOLOCANDO ATRUBUTOS
         for i, ind in enumerate(ind_diferentes_var, start=0):
             new_pop[0].rce = "HOF"
             if i > 0:
                 new_pop[i] = self.setup.toolbox.clone(ind)
-                new_pop[i].rce = "SIM_2"
+                new_pop[i].rce = "SIM"
 
         #! Criterio 3 retorna pop aleatória modificada (com hof + rce + Aleatorio)
         self.calculateFitnessGeneration(new_pop)
