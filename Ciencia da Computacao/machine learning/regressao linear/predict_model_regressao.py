@@ -116,7 +116,7 @@ class PrevisaoHorasEstudos:
         self.model = PredictRegressionLienar()
 
 
-display(df_dsa.head())
+print(df_dsa.head())
 
 meu_modelo = PredictRegressionLienar()
 X_treino, X_teste, y_treino, y_teste = meu_modelo.preparar_dados(
