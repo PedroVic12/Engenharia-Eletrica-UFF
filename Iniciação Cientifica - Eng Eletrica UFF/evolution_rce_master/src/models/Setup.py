@@ -36,10 +36,8 @@ class Setup:
         self.num_repopulation = int(self.NUM_GENERATIONS * self.TAXA_GENERATION)
         self.type = params["type"].lower()
         if self.type == "maximize":
-            print("Método escolhido: Maximizar")
             creator.create("Fitness", base.Fitness, weights=(1.0,))
         else:
-            print("Método escolhido: Minimizar")
             creator.create("Fitness", base.Fitness, weights=(-1.0,))
 
         self.dataset = {}
