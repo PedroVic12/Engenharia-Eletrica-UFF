@@ -1,19 +1,46 @@
 import easygui
+from Setup_rce import SetupRCE
+import json
 
 
-class IMCCalculator:
-    def __init__(self, dados):
+def load_params(file_path):
+    with open(file_path, "r") as file:
+        params = json.load(file)
+    return params
+
+
+params = load_params(
+    r"/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Iniciação Cientifica - Eng Eletrica UFF/evolution_rce_master/src/db/parameters.json"
+)
+
+
+class GUI_RCE:
+    def __init__(self) -> None:
         self.window_title = "Calculadora de IMC"
-        self.nome = dados["nome"]
-        self.idade = dados["idade"]
-        self.altura = dados["altura"]
-        self.peso = dados["peso"]
 
-    def get_input(self):
+        self.setup = SetupRCE(params=params)
+
+    def MaterialAPP(self):
         msg = "Insira seus dados abaixo:"
         title = self.window_title
-        fieldNames = ["nome", "idade", "altura (m)", "peso (kg)"]
-        fieldNames_defs = [self.nome, self.idade, self.altura, self.peso]
+        fieldNames = [
+            "CROSS",
+            "MUTAÇÃO",
+            "GERAÇÕES",
+            "POPULAÇÃO",
+            "TAXA RCE",
+            "DELTA",
+            "PORCENTAGEM C1",
+        ]
+        fieldNames_defs = [
+            self.setup.CXPB,
+            self.setup.MUTPB,
+            self.setup.NGEN,
+            self.setup.POP_SIZE,
+            self.setup.TAXA_GENERATION,
+            self.setup.delta,
+            self.setup.porcentagem,
+        ]
         fieldValues = easygui.multenterbox(msg, title, fieldNames, fieldNames_defs)
 
         while 1:
@@ -28,35 +55,19 @@ class IMCCalculator:
             fieldValues = easygui.multenterbox(errmsg, title, fieldNames, fieldValues)
         return fieldValues
 
-    def calculate_imc(self, weight, height):
-        if weight <= 0 or height <= 0:
-            raise ValueError("Valores negativos não são aceitos.")
-        imc = weight / (height * height)
-        return imc
+    def display_result(
+        self,
+    ):
+        message = "Voce com {age} anos, {name}, tem seu IMC é: {imc:.2f}"
 
-    def display_result(self, imc, age, name):
-        message = f"Voce com {age} anos, {name}, tem seu IMC é: {imc:.2f}"
-        # easygui.msgbox(
-        #     message,
-        #     self.window_title,
-        #     title="Resultado",
-        #     ok_button="OK",
-        #     image=None,
-        #     root=None,
-        # )
         print(message)
 
 
-def main():
-    dados = {"nome": "Pedro", "idade": 26, "altura": 1.72, "peso": 70}
+def tryfunction():
 
-    calculator = IMCCalculator(dados)
-    try:
-        name, age, height, weight = calculator.get_input()
-        imc = calculator.calculate_imc(float(weight), float(height))
-        calculator.display_result(imc, age, name)
-    except ValueError as e:
-        easygui.msgbox(str(e), "Erro", title="Erro", ok_button="OK")
+    gui = GUI_RCE()
+    app = gui.MaterialAPP()
+    print(app)
 
 
-# main()
+tryfunction()
