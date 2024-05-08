@@ -9,6 +9,7 @@ import json
 import pandas as pd
 
 
+# todo novoo nome dashboard rce
 class DataExploration:
     def __init__(self):
         self.fit_array = []
