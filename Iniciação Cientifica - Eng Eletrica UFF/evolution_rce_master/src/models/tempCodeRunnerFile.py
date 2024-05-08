@@ -1,1 +1,0 @@
-toolbox.clone(hof[0])

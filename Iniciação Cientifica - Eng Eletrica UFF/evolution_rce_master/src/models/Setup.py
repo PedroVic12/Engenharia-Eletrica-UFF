@@ -3,9 +3,7 @@ import math
 from deap import base, creator, tools
 import random
 import matplotlib.pyplot as plt
-import time
 from scipy.optimize import minimize
-import json
 import pandas as pd
 
 
@@ -41,7 +39,6 @@ class Setup:
             creator.create("Fitness", base.Fitness, weights=(-1.0,))
 
         self.dataset = {}
-        self.beta_constants = {}
 
         #!Criando individuo pelo deap com seus atributos
         self.toolbox = base.Toolbox()

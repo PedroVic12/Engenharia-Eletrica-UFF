@@ -5,7 +5,6 @@
     "NUM_GENERATIONS": 100,
     "POP_SIZE": 100,
     "IND_SIZE": 10,
-    "tipo_var": "inteiro",
     "funcao objetivo": "Rastrigin",
     "RCE_REPOPULATION_GENERATIONS": 0.20,
     "DELTA": 2,
