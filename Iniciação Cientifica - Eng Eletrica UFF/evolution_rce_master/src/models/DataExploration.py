@@ -10,7 +10,7 @@ import pandas as pd
 
 
 # todo novoo nome dashboard rce
-class DataExploration:
+class Dashboard:
     def __init__(self):
         self.fit_array = []
 

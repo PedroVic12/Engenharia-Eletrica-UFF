@@ -1,6 +1,7 @@
 import easygui
-from Setup_rce import SetupRCE
 import json
+
+from Setup_rce import SetupRCE
 
 
 def load_params(file_path):
@@ -70,4 +71,5 @@ def tryfunction():
     print(app)
 
 
-tryfunction()
+#
+# tryfunction()

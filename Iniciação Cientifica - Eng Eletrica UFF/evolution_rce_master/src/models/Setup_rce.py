@@ -51,6 +51,7 @@ class SetupRCE:
         self.delta = params["DELTA"]
         self.rce_evaluations = params["RCE_REPOPULATION_GENERATIONS"]
         self.porcentagem = params["PORCENTAGEM"]
+        self.bestInd = tools.HallOfFame(1)
 
         #! Parâmetros do algoritmo de Rastrigin
         self.evaluations = 0
@@ -125,7 +126,7 @@ class SetupRCE:
             individual.quantidade_var_decision = quantidade_var_decision
             individual.limite_var = limite_var
             individual.Fitness = (
-                fitness_function if fitness_function else self.rastrigin_fitness
+                fitness_function if fitness_function else self.rastrigin
             )
             return individual
 
@@ -184,6 +185,15 @@ class SetupRCE:
     def rosenbrock(self, x):
         return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
 
+    def rastrigin_decisionVariables(self, individual, decision_variables):
+        self.evaluations += 1
+        rastrigin = 10 * len(decision_variables)
+        for i in range(len(decision_variables)):
+            rastrigin += individual[i] * individual[i] - 10 * (
+                math.cos(2 * np.pi * individual[i])
+            )
+        return rastrigin
+
     def globalSolutions(self):
         n_dimensions = 2
 
@@ -227,10 +237,17 @@ def main_setup():
     )
     setup = SetupRCE(params)
 
+    def avaliarFitnessIndividuos(pop):
+        """Avaliar o fitness dos indivíduos da população atual."""
+        fitnesses = map(setup.toolbox.evaluate, pop)
+        for ind, fit in zip(pop, fitnesses):
+            if ind.fitness.values:
+                ind.fitness.values = [fit]
+
     #! Exemplo de uso
-    tipo = "float"  # Pode ser "int", "float" ou "binario"
+    tipo = "int"  # Pode ser "int", "float" ou "binario"
     quantidade_var_decision = 5
-    limite_var = [-5.12, 5.12]
+    limite_var = [-5, 5]
 
     my_toolbox = setup.configure_deap(tipo, quantidade_var_decision, limite_var)
 
@@ -252,13 +269,19 @@ def main_setup():
 
     newPop = my_toolbox.population(n=5)
     print("\nPopulação gerada\n", newPop)
+    avaliarFitnessIndividuos(newPop)
 
     for i, ind in enumerate(newPop):
         ind.Fitness = my_toolbox.evaluate(ind)
+        ind.fitness = my_toolbox.evaluate(ind)
         ind.index = i + 1
         print("\n")
         print(ind.index, ind)
-        print(ind.Fitness)
+        print(ind.fitness)
+
+    setup.bestInd.update(newPop)
+    newPop[0] = setup.toolbox.clone(setup.bestInd[0])
+    print("Best Da geração= ", newPop[0], newPop[0].Fitness[0])
 
 
 main_setup()

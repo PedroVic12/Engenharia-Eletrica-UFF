@@ -29,11 +29,6 @@ class AlgoritimoEvolutivoRCE:
 
         self.logbook = tools.Logbook()
         self.hof = tools.HallOfFame(1)
-        self.POPULATION = self.setup.toolbox.population(n=self.setup.POP_SIZE)
-        self.hof.update(self.POPULATION)
-
-        if self.setup.DADOS_ENTRADA:
-            self.POP_OPTIMIZATION = self.setup.toolbox.population(n=self.setup.POP_SIZE)
 
         self.pop_RCE = []
         self.best_solutions_array = []
@@ -44,13 +39,6 @@ class AlgoritimoEvolutivoRCE:
         self.allFitnessValues = {}
         self.validateCounter = 0
         self.CONJUNTO_ELITE_RCE = set()
-
-    def pesquisarLinear(self, array, num, pos=0):
-        while (pos < len(array)) and (array[pos] != num):
-            pos += 1
-
-        if array[pos] == num:
-            print("Valor encontrado")
 
     def registrarDados(self, generation):
 
@@ -104,8 +92,8 @@ class AlgoritimoEvolutivoRCE:
             }
 
             # Adicionar a informação de clone ao dicionário
-            is_clone = self.checkClonesInPop(ind, new_pop)
-            ind_info["CLONE"] = "SIM" if is_clone else "NAO"
+            # is_clone = self.checkClonesInPop(ind, new_pop)
+            # ind_info["CLONE"] = "SIM" if is_clone else "NAO"
 
             ind_array.append(ind_info)
 
@@ -114,10 +102,10 @@ class AlgoritimoEvolutivoRCE:
     def show_ind_df(self, array, text):
         df = pd.DataFrame(array)
         print(text)
-        display(df.head(40))
+        display(df.head(50))  # type: ignore
 
         # contar quantos SIM na coluna CLONE se a coluna RCE for SIM
-        display(df[df["RCE"] != ""]["CLONE"].value_counts())
+        # display(df[df["RCE"] != ""].value_counts())
 
     def criterio1(self, new_pop, porcentagem, k=30):
         """Seleciona os candidatos ao conjunto elite com base nas diferenças percentuais de aptidão."""
@@ -179,67 +167,73 @@ class AlgoritimoEvolutivoRCE:
 
         return self.pop_RCE
 
-    def newCriterio(self, population, delta):
-        self.cout(f"CRITÉRIO 2 RCE ")
+    def newCriterio(self, population):
         self.CONJUNTO_ELITE_RCE.clear()
         self.pop_RCE = []
 
-        def criterio1_reduzido(population, porcentagem=0.40):
-            best_ind = self.elitismoSimples(population)[0]
-            best_fitness = best_ind.fitness.values[0]
-            max_difference = (1 + porcentagem) * best_fitness
-            print(f"Fitness calculado com {porcentagem} = {round(max_difference)}")
+        self.calculaFitness(population)
+
+        def criterio1_reduzido(population):
+            #! critério 1 e obtém os N melhores com 30% do valor do melhor fitness
+
+            # best_ind = self.elitismoSimples(population)[0]
+            # best_fitness = best_ind.fitness.values[0]
+
+            self.hof.update(population)
+            best_ind = self.setup.toolbox.clone(self.hof[0])
+            print(
+                f"\n\ndebug  {best_ind.Fitness} - {best_ind.fitness}",
+                best_ind,
+            )
+
+            best_fitness = best_ind.Fitness[0]
+            max_difference = (1 + self.setup.porcentagem) * best_fitness
+            print(
+                f"Fitness ({self.setup.porcentagem * 100})% = {round(max_difference,3)}"
+            )
             return max_difference, best_ind
 
+        self.cout(
+            "Criterio 1 - Pegando o valor máximo de Fitness para selecionar individuos"
+        )
         max_difference, best_ind = criterio1_reduzido(population)
         self.pop_RCE.append(best_ind)
 
-        # todo colocar hof no rce e ajustar parâmetros sim e nao
-        def calculaDiff(ind, lista, valor_limite):
-            count_ind = 0
+        def calculaDiff(ind, lista):
             count = 0
 
-            # print("Lista criterio 1:",lista)
-
-            for i in range(len(lista)):
+            # calcula a diferença entre o ind selecionado e o pessoal do RCE
+            for i in range(0, len(lista)):
                 diff = abs(np.array(ind) - np.array(lista[i]))
+                array = list(diff)
 
-                if sum(diff) > 0.0:
-                    print("\n Soma Diff = ", sum(diff))
-                    print("array ind selecionados: ", list(diff))
-                    array = list(diff)
-
-                    for j in range(len(array)):
-                        print("debug", array[j], delta)
-                        print("contador = ", count)
-
-                        if array[j] > delta:
+                # pegando quantos valores nao sao nulos  -> caso tenha valor limite
+                if sum(array) > 0.0:
+                    for value in array:
+                        if value != 0.0:
                             count += 1
 
-                        if count >= valor_limite:
-                            count_ind += 1
-                            # break
+                    # se o contador for maior que delta
+                    if count >= self.setup.delta:
+                        print("\nArray diferente")
 
-                        if j == len(lista) - 1:
-                            print("Não é diferente ")
-                            # return False
-                            break
+                        print(" diff", array)
 
-                    if len(array) >= valor_limite:
-                        # if count_ind >= len(array):
+                        print("Var decision diferentes = ", count)
                         return True
+
                     else:
-                        return False
-
+                        return False  # sem diversidade suficiente
                 else:
-                    return False
+                    return False  # clone: Variaveis iguais
 
+        self.cout(f"New - CRITÉRIO 2 RCE ")
         for ind in population:
             # criterio 1
             if ind.fitness.values[0] <= max_difference:
                 # criterio 2
-                diff = calculaDiff(ind, self.pop_RCE, 2)
-                if diff:
+                diferente = calculaDiff(ind, self.pop_RCE)  # delta como valor limite
+                if diferente:
                     if ind not in self.pop_RCE:
                         self.pop_RCE.append(ind)
                         self.CONJUNTO_ELITE_RCE.add(tuple(ind))
@@ -247,7 +241,7 @@ class AlgoritimoEvolutivoRCE:
         if len(self.pop_RCE) == 1:
             print("Nenhum indivíduo atende aos critérios. :( ")
 
-        print("Tamanho Elite = ", len(self.pop_RCE))
+        print("\nTamanho Elite = ", len(self.pop_RCE))
         print("Tamanho Elite = ", len(self.CONJUNTO_ELITE_RCE))
 
         return self.pop_RCE
@@ -259,27 +253,25 @@ class AlgoritimoEvolutivoRCE:
             n=self.setup.POP_SIZE
         )  # retorna uma pop com lista de individuos de var de decisão
 
-        # Avaliar o fitness da população atual
-        self.avaliarFitnessIndividuos(current_population)
-        self.calculateFitnessGeneration(current_population)
+        # todo Avaliar o fitness da população atual
+        # self.avaliarFitnessIndividuos(current_population)
+        # self.calculaFitness(current_population)
+        # self.calculateFitnessGeneration(current_population)
 
         #! b - Coloca o elite hof da pop anterior  no topo (0)
         pop = self.elitismoSimples(current_population)
+        print("best", pop[0].fitness)
         print(
             f"Elitismo HOF Index[{pop[0].index}] {pop[0]} \n Fitness = {pop[0].fitness.values} | Diversidade = {sum(pop[0])}"
         )  # pop[0] é o melhor individuo HOF
         new_pop[0] = self.setup.toolbox.clone(pop[0])
 
-        #! critério 1 e obtém os N melhores com 30% do valor do melhor fitness
-        # ind_selecionados = self.criterio1(self.POPULATION, 0.30, k=30)
-
         #! Critério 2 usando este array e vai colocando os indivíduos selecionados pelo critério 2 na pop aleatória (passo a)
-        # ind_diferentes_var = self.criterio2_alternative(ind_selecionados, delta=7)
         ind_diferentes_var = self.newCriterio(
-            current_population, delta=self.setup.delta
+            current_population,
         )
 
-        # cOLOCANDO ATRUBUTOS
+        # cOLOCANDO ATRIBUTOS
         for i, ind in enumerate(ind_diferentes_var, start=0):
             new_pop[0].rce = "HOF"
             if i > 0:
@@ -294,6 +286,10 @@ class AlgoritimoEvolutivoRCE:
         return new_pop
 
     def elitismoSimples(self, pop):
+        for i, ind in enumerate(pop):
+            ind.index = i
+            ind.fitness = self.setup.toolbox.evaluate(ind)
+            ind.Fitness = self.setup.toolbox.evaluate(ind)
         self.hof.update(pop)
         pop[0] = self.setup.toolbox.clone(self.hof[0])
         return pop
@@ -339,9 +335,18 @@ class AlgoritimoEvolutivoRCE:
     def avaliarFitnessIndividuos(self, pop):
         """Avaliar o fitness dos indivíduos da população atual."""
         fitnesses = map(self.setup.toolbox.evaluate, pop)
+        print("Avaliando", fitnesses)
         for ind, fit in zip(pop, fitnesses):
-            if ind.fitness.values:
-                ind.fitness.values = [fit]
+            if ind.fitness:
+                ind.fitness = [fit]
+
+    def calculaFitness(self, pop):
+        for i, ind in enumerate(pop):
+            ind.Fitness = self.setup.toolbox.evaluate(ind)
+            ind.fitness = self.setup.toolbox.evaluate(ind)
+            ind.index = i + 1
+        print("fitness calculado")
+        return pop
 
     def calculateFitnessGeneration(self, new_pop):
         # Calculando o fitness para geração
@@ -362,7 +367,7 @@ class AlgoritimoEvolutivoRCE:
             ]
 
             # Definir a função de fitness padrão como a função Rastrigin
-            fitness_function = self.setup.rastrigin_decisionVariables
+            fitness_function = self.setup.rastrigin
 
         if decision_variables is None or fitness_function is None:
             if not hasattr(self, "decision_variables") or not hasattr(
@@ -384,19 +389,19 @@ class AlgoritimoEvolutivoRCE:
 
     #! Main LOOP
     def run(self, RCE=False, decision_variables=None, fitness_function=None, num_pop=0):
-
-        if self.setup.DADOS_ENTRADA:
-            population = [self.POPULATION, self.POP_OPTIMIZATION]
-        else:
-            population = [self.POPULATION]
+        self.POPULATION = self.setup.toolbox.population(n=self.setup.POP_SIZE)
+        self.hof.update(self.POPULATION)
+        self.POPULATION = self.calculaFitness(self.POPULATION)
+        population = [self.POPULATION]
+        self.elitismoSimples(population[num_pop])
 
         # Avaliar o fitness da população inicial
-        self.avaliarFitnessIndividuos(population[num_pop])
+        # self.avaliarFitnessIndividuos(population[num_pop])
 
         # Selecionando as variaveis de decisao e afuncao objeti
-        self.checkDecisionVariablesAndFitnessFunction(
-            decision_variables, fitness_function
-        )
+        # self.checkDecisionVariablesAndFitnessFunction(
+        #   decision_variables, fitness_function
+        # )
 
         #! Loop principal através das gerações
         for current_generation in range(self.setup.NGEN):
@@ -408,25 +413,33 @@ class AlgoritimoEvolutivoRCE:
 
             # Clone the selected individuals
             offspring = [self.setup.toolbox.clone(ind) for ind in offspring]
+            self.calculaFitness(offspring)
 
             # Aplicar crossover
             for child1, child2 in zip(offspring[::2], offspring[1::2]):
                 if random.random() < self.setup.CXPB:
                     self.setup.toolbox.mate(child1, child2)
-                    del child1.fitness.values
-                    del child2.fitness.values
+                    del child1.fitness
+                    del child2.fitness
 
             # Aplicar mutação
             for mutant in offspring:
                 if random.random() < self.setup.MUTPB:
                     self.setup.toolbox.mutate(mutant)
-                    del mutant.fitness.values
+                    print("mutante", mutant.fitness)
+                    # todo del mutant.fitness
 
-            #  Avaliar o fitness dos novos indivíduos
-            invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-            fitnesses = map(self.setup.toolbox.evaluate, invalid_ind)
-            for ind, fit in zip(invalid_ind, fitnesses):
-                ind.fitness.values = [fit]
+            # todo  Avaliar o fitness dos novos indivíduos
+            try:
+                invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+                fitnesses = map(self.setup.toolbox.evaluate, invalid_ind)
+                print("fitness validos", fitnesses)
+                for ind, fit in zip(invalid_ind, fitnesses):
+                    ind.fitness.values = [fit]
+                    ind.Fitness = self.setup.evaluate(ind)
+
+            except:
+                print("nao foi validado pelo rastrigin")
 
             #! Aplicar RCE
             if RCE and ((current_generation + 1) % self.setup.num_repopulation == 0):
@@ -438,14 +451,15 @@ class AlgoritimoEvolutivoRCE:
                 new_population = self.aplicar_RCE(
                     current_generation + 1, population[num_pop]
                 )
-                print("\nPopulação gerada pelo RCE\n", population[num_pop])
+                # print("\nPopulação gerada pelo RCE\n", population[num_pop])
                 population[num_pop][:] = new_population
+
             else:
                 population[num_pop][:] = offspring
 
             # Registrar estatísticas no logbook
-            self.elitismoSimples(population[num_pop])
             self.registrarDados(current_generation)
+            # todo
             record = self.stats.compile(population[num_pop])
             self.logbook.record(gen=current_generation, **record)
 
@@ -474,3 +488,48 @@ class AlgoritimoEvolutivoRCE:
         print(
             "==========================================================================================================\n"
         )
+
+
+def load_params(file_path):
+    with open(file_path, "r") as file:
+        params = json.load(file)
+    return params
+
+
+def main_evolution():
+    from Setup_rce import SetupRCE
+
+    #! Setup
+    params = load_params(
+        r"/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Iniciação Cientifica - Eng Eletrica UFF/evolution_rce_master/src/db/parameters.json"
+    )
+    setup = SetupRCE(params)
+    alg = AlgoritimoEvolutivoRCE(setup)
+
+    def avaliarFitnessIndividuos(pop):
+        """Avaliar o fitness dos indivíduos da população atual."""
+        fitnesses = map(setup.toolbox.evaluate, pop)
+        for ind, fit in zip(pop, fitnesses):
+            if ind.fitness.values:
+                ind.fitness.values = [fit]
+
+    #! Exemplo de uso
+    tipo = "float"  # Pode ser "int", "float" ou "binario"
+    quantidade_var_decision = 5
+    limite_var = [-5.12, 5.12]
+    my_toolbox = setup.configure_deap(tipo, quantidade_var_decision, limite_var)
+
+    alg.POPULATION = my_toolbox.population(n=5)
+    print("\nPopulação gerada\n", alg.POPULATION)
+    alg.hof.update(alg.POPULATION)
+    alg.POPULATION[0] = setup.toolbox.clone(alg.hof[0])
+    print("best", alg.POPULATION[0])
+    avaliarFitnessIndividuos(alg.POPULATION)
+
+    alg.run(
+        RCE=True,
+        num_pop=0,
+    )
+
+
+# main_evolution()
