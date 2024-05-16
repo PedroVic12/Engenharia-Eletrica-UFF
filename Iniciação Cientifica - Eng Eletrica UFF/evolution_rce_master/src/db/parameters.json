@@ -7,7 +7,7 @@
     "IND_SIZE": 10,
     "funcao objetivo": "Rastrigin",
     "RCE_REPOPULATION_GENERATIONS": 0.20,
-    "NUM_VAR_DIFERENTES": 1,
+    "NUM_VAR_DIFERENTES": 5,
     "PORCENTAGEM": 0.30,
     "VALOR_LIMITE": 2
 }
