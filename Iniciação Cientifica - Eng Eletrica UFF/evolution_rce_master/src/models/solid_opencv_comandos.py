@@ -7,6 +7,25 @@ class WebCam:
 
         pass
 
+    def caixa_texto(self, imagem, msg):
+
+        cvzone.putTextRect(
+            imagem,
+            msg,
+            (200, 300),
+            scale=8,
+            thickness=3,
+            colorT=(255, 255, 255),
+            colorR=(255, 0, 255),
+            font=cv2.FONT_HERSHEY_PLAIN,
+            offset=50,
+            border=None,
+            colorB=(0, 255, 0),
+        )
+
+    def titulo(self, imagem, txt):
+        cvzone.putTextRect(imagem, txt, (200, 300), border=5, offset=200)
+
     def desenha_retangulo(self, imagem):
 
         cvzone.cornerRect(
@@ -23,26 +42,41 @@ class WebCam:
     def exibe_imagem(self, imagem):
         cv2.imshow("WebCam", imagem)
 
+    def connect(self):
+        cap = cv2.VideoCapture(0)
+
+        sucesso, imagem = cap.read()
+        return cap, sucesso, imagem
+
+    def achar_contorno(self):
+        pass
+
+    def abrir_imagem(self, path_img):
+        img = cv2.imread(path_img)
+        return img
+
     #!LOOP
     def main_loop(self):
+        cap, sucesso, imagem = self.connect()
 
-        caputa = cv2.VideoCapture(0)
         while True:
-            sucesso, imagem = caputa.read()
+            if sucesso:
 
-            # todo fazer acontecer
-            # coordenadas = [(200, 200), (500, 400), (255, 0, 255), 3]
-            # cv2.rectangle(imagem, (200, 200), (500, 400), (255, 0, 255), 3)
-            # self.desenha_retangulo(imagem)
+                # todo fazer acontecer
+                # coordenadas = [(200, 200), (500, 400), (255, 0, 255), 3]
+                # cv2.rectangle(imagem, (200, 200), (500, 400), (255, 0, 255), 3)
+                # self.desenha_retangulo(imagem)
 
-            cvzone.cornerRect(imagem, (200, 200, 300, 200))
+                # cvzone.cornerRect(imagem, (200, 200, 300, 200))
 
-            self.exibe_imagem(imagem)
-            # desliga
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+                self.caixa_texto(imagem, "Ola pedro")
 
-        caputa.release()
+                self.exibe_imagem(imagem)
+                # desliga
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+
+        cap.release()
         cv2.destroyAllWindows()
         print(
             "Camera released"
