@@ -3,6 +3,7 @@ import plotly.express as px
 import streamlit as st
 import json
 from abc import ABC, abstractmethod
+from streamlit_option_menu import option_menu
 
 
 class FileReader(ABC):
@@ -53,27 +54,38 @@ class dashPY:
     def exibir_dataset(self):
         st.dataframe(self.df)
 
-    def plot_interativo(self, df):
-
+    def plot_interativo(self):
         st.title("Visualização de dados Alg Evolutivo")
-
         mes_selecionado = st.sidebar.multiselect(
-            "Escolha a coluna", df.columns, placeholder="Selecione"
+            "Escolha a coluna", self.df.columns, placeholder="Selecione"
         )
 
         if mes_selecionado:
-            fig = px.line(df, x="dias", y=mes_selecionado)
+            fig = px.line(self.df, x="dias", y=mes_selecionado)
             st.plotly_chart(fig)
-
-            st.write(df[mes_selecionado])
+            st.write(self.df[mes_selecionado])
 
             col1, col2, col3 = st.columns(3)
+            col1.bar_chart(self.df[mes_selecionado])
+            col2.line_chart(self.df[mes_selecionado])
+            col2.area_chart(self.df[mes_selecionado])
+            col3.line_chart(self.df[mes_selecionado])
 
-            col1.bar_chart(df[mes_selecionado])
-            col2.line_chart(df[mes_selecionado])
-            col2.area_chart(df[mes_selecionado])
+    def pagina1(self):
+        st.title("Página 1: Dataset")
+        self.exibir_dataset()
 
-            col3.line_chart(df[mes_selecionado])
+    def pagina2(self):
+        st.title("Página 2: Gráficos Interativos")
+        colunas = st.multiselect(
+            "Selecione as colunas para os gráficos", self.df.columns
+        )
+        if st.button("Gerar Gráficos"):
+            self.gerar_graficos_interativos(colunas)
+
+    def pagina3(self):
+        st.title("Página 3: Plot Interativo")
+        self.plot_interativo()
 
 
 def load_params(file_path):
@@ -85,7 +97,7 @@ def load_params(file_path):
 def main():
     st.title("Visualização de Dados Interativos")
 
-    def select_file():
+    def select_files():
 
         file_type = st.radio("Selecione o tipo de arquivo", ("Excel", "JSON"))
         file_path = st.text_input("Insira o caminho do arquivo:")
@@ -129,7 +141,24 @@ def main():
     #!CASO DE USO
     dash = dashPY(df)
     dash.exibir_dataset()
-    dash.plot_interativo(df)
+    dash.plot_interativo()
+
+    # Menu lateral
+    selected = option_menu(
+        menu_title="Menu",
+        options=["Página 1", "Página 2", "Página 3"],
+        icons=["house", "bar-chart", "line-chart"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="horizontal",
+    )
+
+    if selected == "Página 1":
+        dash.pagina1()
+    elif selected == "Página 2":
+        dash.pagina2()
+    elif selected == "Página 3":
+        dash.pagina3()
 
     # if st.button("Exibir Gráficos"):
     # dash.plot_interativo(df)

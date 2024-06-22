@@ -1,13 +1,13 @@
 {
-    "type": "rastrigin",
-    "CROSSOVER": 0.80,
-    "MUTACAO": 0.20,
-    "NUM_GENERATIONS": 200,
+    "type": "esfera",
+    "CROSSOVER": 0.90,
+    "MUTACAO": 0.45,
+    "NUM_GENERATIONS": 400,
     "POP_SIZE": 100,
     "IND_SIZE": 10,
     "funcao objetivo": "rastrigin",
     "RCE_REPOPULATION_GENERATIONS": 20,
-    "NUM_VAR_DIFERENTES": 3,
+    "NUM_VAR_DIFERENTES": 1,
     "PORCENTAGEM": 30,
     "VALOR_LIMITE": 3
 }

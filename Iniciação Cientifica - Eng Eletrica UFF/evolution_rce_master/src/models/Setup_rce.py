@@ -3,37 +3,18 @@ import math
 from deap import base, creator, tools
 import random
 import matplotlib.pyplot as plt
+import time
 from scipy.optimize import minimize
-import pandas as pd
 import json
-from typing import List, Callable, Optional
+import pandas as pd
 
 
-class CustomIndividual(list):
-    def __init__(
-        self,
-        tipo: str,
-        quantidade_var_decision: int,
-        limite_var: List[Optional[float]],
-        *args
-    ):
-        super().__init__(*args)
-        self.tipo = tipo
-        self.quantidade_var_decision = quantidade_var_decision
-        self.limite_var = limite_var
-        self.index = None
-        self.rce = None
-        self.Fitness = None
-
-
-class SetupRCE:
-    def __init__(
-        self,
-        params,
-    ):
+class Setup:
+    def __init__(self, params, dadosEntrada=None):
 
         #! Parametros JSON
         self.params = params
+        self.DADOS_ENTRADA = dadosEntrada  # Dados da entrada do usuario
 
         self.CXPB = params["CROSSOVER"]
         self.MUTPB = params["MUTACAO"]
@@ -48,110 +29,102 @@ class SetupRCE:
             self.POP_SIZE,
         )
 
-        self.delta = params["DELTA"]
-        self.rce_evaluations = params["RCE_REPOPULATION_GENERATIONS"]
+        self.NUM_VAR_DIF = params["NUM_VAR_DIFERENTES"]
         self.porcentagem = params["PORCENTAGEM"]
-        self.bestInd = tools.HallOfFame(1)
+        self.delta = params["VALOR_LIMITE"]
 
         #! Parâmetros do algoritmo de Rastrigin
         self.evaluations = 0
-        self.num_repopulation = int(self.NUM_GENERATIONS * self.TAXA_GENERATION)
+        self.num_repopulation = int(self.NUM_GENERATIONS * (self.TAXA_GENERATION / 100))
         self.type = params["type"].lower()
         if self.type == "maximize":
+            print("Método escolhido: Maximizar")
             creator.create("Fitness", base.Fitness, weights=(1.0,))
         else:
-            creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+            print("Método escolhido: Minimizar")
+            creator.create("Fitness", base.Fitness, weights=(-1.0,))
 
         self.dataset = {}
 
         #!Criando individuo pelo deap com seus atributos
         self.toolbox = base.Toolbox()
 
-    # Exemplo de configuração do DEAP
-    def configure_deap(
-        self,
-        tipo: str,
-        quantidade_var_decision: int,
-        limite_var: List[Optional[float]],
-        fitness_function=None,
-    ):
-        creator.create("Fitness", base.Fitness, weights=(-1.0,))
+        # Função de fitness de minimização
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+
+        # parâmetros
         creator.create(
-            "Individual",
-            CustomIndividual,
-            fitness=creator.Fitness,
-            rce=str,
-            index=int,
+            "Individual", list, fitness=creator.FitnessMin, rce=str, index=int
         )
 
-        # Registro de parâmetros evolutvos
-        self.toolbox.register("mate", tools.cxTwoPoint)
-        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
-        self.toolbox.register("select", tools.selTournament, tournsize=3)
+        # Variavel de decisão
+        self.toolbox.register("attribute", random.uniform, -5.12, 5.12)
 
-        # Registro de função para inicializar os atributos dos indivíduos
-        if tipo == "int":
-            self.toolbox.register(
-                "attribute", random.randint, limite_var[0], limite_var[1]
-            )
-        elif tipo == "float":
-            self.toolbox.register(
-                "attribute", random.uniform, limite_var[0], limite_var[1]
-            )
-        elif tipo == "binario":
-            self.toolbox.register("attribute", random.randint, 0, 1)
-        else:
-            raise ValueError("Tipo de variável inválido")
-
-        # Registro da função de avaliação (fitness)
-        if fitness_function is not None:
-            self.toolbox.register("evaluate", fitness_function)
-        else:
-            self.toolbox.register("evaluate", self.rastrigin_fitness)
-            # self.toolbox.register("evaluate", self.evaluate_fitness)
-
-        # Função para criar um indivíduo com atributos personalizados
-        def create_individual(
-            tipo: str,
-            quantidade_var_decision: int,
-            limite_var: List[Optional[float]],
-        ):
-            individual = creator.Individual(
-                tipo,
-                quantidade_var_decision,
-                limite_var,
-                [self.toolbox.attribute() for _ in range(quantidade_var_decision)],
-            )
-            individual.tipo = tipo
-            individual.quantidade_var_decision = quantidade_var_decision
-            individual.limite_var = limite_var
-            individual.Fitness = (
-                fitness_function if fitness_function else self.rastrigin
-            )
-            return individual
-
-        # Registro da função de criação de indivíduos
+        # registrando os individuos
         self.toolbox.register(
             "individual",
-            create_individual,
-            tipo,
-            quantidade_var_decision,
-            limite_var,
+            tools.initRepeat,
+            creator.Individual,
+            self.toolbox.attribute,
+            n=self.SIZE_INDIVIDUAL,
         )
+
+        #! individuos com dados de entrada
+        if self.DADOS_ENTRADA:
+            creator.create(
+                "FrameworkIndividual",
+                list,
+                fitness=creator.FitnessMin,
+                tipo=self.DADOS_ENTRADA[0],
+                rce=str,
+            )
+            self.toolbox.register(
+                "varDecision",
+                random.uniform,
+                self.DADOS_ENTRADA[2][0],
+                self.DADOS_ENTRADA[2][1],
+            )
+            self.toolbox.register(
+                "newIndividual",
+                tools.initRepeat,
+                creator.FrameworkIndividual,
+                self.toolbox.varDecision,
+                n=self.DADOS_ENTRADA[1],
+            )
+
+            self.toolbox.register(
+                "FrameworkPopulation",
+                tools.initRepeat,
+                list,
+                self.toolbox.newIndividual,
+            )
 
         #! paramentos evolutivos
         self.toolbox.register(
             "population", tools.initRepeat, list, self.toolbox.individual
         )
 
-        return self.toolbox
+        self.toolbox.register("mate", tools.cxTwoPoint)
+        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
+        self.toolbox.register("select", tools.selTournament, tournsize=3)
+        self.toolbox.register("evaluate", self.evaluate_fitness)
 
     def evaluate_fitness(self, individual):
-        if self.type == "minimaze":
+
+        # print("Função escolhida:",self.type)
+
+        if self.type == "rastrigin":
             result = minimize(
                 self.rastrigin, x0=np.zeros(self.SIZE_INDIVIDUAL), method="BFGS"
             )
             fitness_value = result.fun
+
+        if self.type == "test_02":
+            fitness_value = self.rosenbrock(individual)
+
+        if self.type == "esfera":
+            fitness_value = individual[0] ** 2 + individual[1] ** 2
+
         return fitness_value
 
     def gerarDataset(self, excel):
@@ -176,15 +149,6 @@ class SetupRCE:
             )
         return rastrigin
 
-    def rastrigin_fitness(self, individual: CustomIndividual) -> float:
-        rastrigin = 10 * len(individual)
-        for i in range(len(individual)):
-            rastrigin += individual[i] ** 2 - 10 * (np.cos(2 * np.pi * individual[i]))
-        return (rastrigin,)
-
-    def rosenbrock(self, x):
-        return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
-
     def rastrigin_decisionVariables(self, individual, decision_variables):
         self.evaluations += 1
         rastrigin = 10 * len(decision_variables)
@@ -193,6 +157,12 @@ class SetupRCE:
                 math.cos(2 * np.pi * individual[i])
             )
         return rastrigin
+
+    def rosenbrock(self, x):
+
+        var = np.array(x)
+
+        return np.sum(100 * (var[1:] - var[:-1] ** 2) ** 2 + (1 - var[:-1]) ** 2)
 
     def globalSolutions(self):
         n_dimensions = 2
@@ -218,70 +188,3 @@ class SetupRCE:
         print()
         print("Ótimo global da função Rosenbrock: ", rosenbrock_minimum)
         print("Solução: ", rosenbrock_solution)
-
-
-def load_params(file_path):
-    with open(file_path, "r") as file:
-        params = json.load(file)
-    return params
-
-
-def customFitness(individual):
-    return sum(individual) ** 2
-
-
-def main_setup():
-    #! Setup
-    params = load_params(
-        r"/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Iniciação Cientifica - Eng Eletrica UFF/evolution_rce_master/src/db/parameters.json"
-    )
-    setup = SetupRCE(params)
-
-    def avaliarFitnessIndividuos(pop):
-        """Avaliar o fitness dos indivíduos da população atual."""
-        fitnesses = map(setup.toolbox.evaluate, pop)
-        for ind, fit in zip(pop, fitnesses):
-            if ind.fitness.values:
-                ind.fitness.values = [fit]
-
-    #! Exemplo de uso
-    tipo = "int"  # Pode ser "int", "float" ou "binario"
-    quantidade_var_decision = 5
-    limite_var = [-5, 5]
-
-    my_toolbox = setup.configure_deap(tipo, quantidade_var_decision, limite_var)
-
-    #! Criação de um indivíduo
-    ind = my_toolbox.individual()
-    fitness = my_toolbox.evaluate(ind)
-
-    print("\n\n", type(ind))
-
-    print("Indivíduo:", ind)
-    print("Tipo:", ind.tipo)
-    print("Quantidade de Variáveis de Decisão:", ind.quantidade_var_decision)
-    print("Limites Variáveis:", ind.limite_var)
-    print("Índice:", ind.index)  # Pode ser None
-    print("RCE:", ind.rce)  # Pode ser None
-
-    # Avaliação do indivíduo usando a função Rastrigin
-    print("Fitness do Indivíduo:", fitness)
-
-    newPop = my_toolbox.population(n=5)
-    print("\nPopulação gerada\n", newPop)
-    avaliarFitnessIndividuos(newPop)
-
-    for i, ind in enumerate(newPop):
-        ind.Fitness = my_toolbox.evaluate(ind)
-        ind.fitness = my_toolbox.evaluate(ind)
-        ind.index = i + 1
-        print("\n")
-        print(ind.index, ind)
-        print(ind.fitness)
-
-    setup.bestInd.update(newPop)
-    newPop[0] = setup.toolbox.clone(setup.bestInd[0])
-    print("Best Da geração= ", newPop[0], newPop[0].Fitness[0])
-
-
-main_setup()

@@ -9,8 +9,7 @@ import json
 import pandas as pd
 
 
-# todo novoo nome dashboard rce
-class Dashboard:
+class DataExploration:
     def __init__(self):
         self.fit_array = []
 
@@ -103,6 +102,8 @@ class Dashboard:
 
         df = pd.DataFrame(data)
         display(df)
+
+        return avg_fitness, std_fitness
 
     def plot_diversidade_genes(self, population):
         print("Plotando diversidade dos genes")
@@ -203,7 +204,8 @@ class Dashboard:
             best_solution_index = statics["min_fitness"].index(
                 min(statics["min_fitness"])
             )
-            best_solution_variables = pop[best_solution_index]
+            print(best_solution_index)
+            best_solution_variables = pop[0]
             best_solution_fitness = statics["min_fitness"][best_solution_index]
         else:
             best_solution_index = statics["min_fitness"].index(
@@ -214,30 +216,33 @@ class Dashboard:
 
         # Soluções do problema
         self.cout("Soluções do problema")
-        print("\nBest solution index = ", best_solution_index)
+        print("\nBest solution generation = ", best_solution_index)
         print("\nBest solution variables =\n", best_solution_variables)
         print("\nBest solution fitness = ", best_solution_fitness)
 
         try:
+
             # Encontrar o ótimo global da função Rastrigin usando os valores fornecidos.
-            opt = minimize(
-                self.rastrigin, best_solution_variables, method="Nelder-Mead", tol=1e-6
-            )
-            print("\nÓtimo global da função Rastrigin = ", opt.fun)
-            print("\nSolução ótima global = ", opt.x)
-            # Comparar as soluções obt
-            print(
-                "\nPorcentagem de proximidade da solução em relação ao ótimo global = ",
-                (1 - (best_solution_fitness / opt.fun)) * 100,
-                "%",
-            )
-            distancia_otimoglobal = abs
-            print(
-                f"\nDistância da solução em relação ao ótimo global = {distancia_otimoglobal}",
-            )
+            # opt = minimize(
+            #     self.rastrigin, best_solution_variables, method="Nelder-Mead", tol=1e-6
+            # )
+            # print("\nÓtimo global da função Rastrigin = ", opt.fun)
+            # print("\nSolução ótima global = ", opt.x)
+            # # Comparar as soluções obt
+            # print(
+            #     "\nPorcentagem de proximidade da solução em relação ao ótimo global = ",
+            #     (1 - (best_solution_fitness / opt.fun)) * 100,
+            #     "%",
+            # )
+            # distancia_otimoglobal = abs
+            # print(
+            #     f"\nDistância da solução em relação ao ótimo global = {distancia_otimoglobal}",
+            # )
 
             self.grafico_convergencia(generation, statics, repopulation)
             self.graficoBarrasFitnessGeneration(generation, statics, repopulation)
+
+            return best_solution_index, best_solution_variables, best_solution_fitness
         except:
             print("Erro validation :(")
 
@@ -268,9 +273,9 @@ class Dashboard:
     def graficoBarrasFitnessGeneration(self, generation, lista, repopulation=False):
         fig, ax = plt.subplots()
         if repopulation:
-            ax.set_title("Com Repopulação")
+            ax.set_title("Alg Evolutivo com RCE")
         else:
-            ax.set_title("Sem Repopulação")
+            ax.set_title("Alg Evolutivo")
 
         if len(generation) > 1:
             best_solutions = [min(lista["min_fitness"]) for i in range(len(generation))]
