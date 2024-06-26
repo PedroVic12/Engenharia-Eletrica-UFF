@@ -5,7 +5,7 @@ import json
 from abc import ABC, abstractmethod
 from streamlit_option_menu import option_menu
 from DataExploration import DataExploration
-from AlgEvolution import AlgoritimoEvolutivoRCE
+from AlgoritimoEvolutivoRCE import AlgoritimoEvolutivoRCE
 from Setup_rce import Setup
 
 

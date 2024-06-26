@@ -2,7 +2,7 @@
     "type": "esfera",
     "CROSSOVER": 0.90,
     "MUTACAO": 0.45,
-    "NUM_GENERATIONS": 400,
+    "NUM_GENERATIONS": 200,
     "POP_SIZE": 100,
     "IND_SIZE": 10,
     "funcao objetivo": "rastrigin",
