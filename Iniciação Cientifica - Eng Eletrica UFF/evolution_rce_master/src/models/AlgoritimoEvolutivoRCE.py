@@ -107,7 +107,7 @@ class AlgoritimoEvolutivoRCE:
     def show_ind_df(self, array, text):
         df = pd.DataFrame(array)
         print(text)
-        print(df.head(50))
+        display(df.head(50))
 
         # contar quantos SIM na coluna CLONE se a coluna RCE for SIM
         # display(df[df["RCE"] != ""].value_counts())
