@@ -40,6 +40,7 @@ class DashboardApp:
                 "valor_membro_graph", "Valor Venda por Tipo Membro", "", ""
             ),
         }
+
         self.layout()
         self.callbacks()
 
